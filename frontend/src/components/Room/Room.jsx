@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
 import { ToggleButtonGroup, ToggleButton } from "@mui/material";
 import { Mic, MicOff, Videocam, VideocamOff } from "@mui/icons-material";
@@ -15,12 +15,11 @@ import { AuthContext } from "../../context/AuthProvider";
 const Room = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
-
   //the mode can either be "draw" or "vid" corresponding to seeing the whiteboard or video
   const [mode, setMode] = useState("vid");
-
   const [remoteParticipants, setRemoteParticipants] = useState([]);
   //audioOn set to true means unmuted
   const [audioOn, setAudioOn] = useState(true);
@@ -61,15 +60,6 @@ const Room = () => {
         setRoom(newRoom);
       })
       .catch((err) => console.log(err));
-  };
-
-  const addParticipant = (participant) => {
-    setRemoteParticipants((prev) => [...prev, participant]);
-  };
-
-  const removeParticipant = (participant) => {
-    participant.removeAllListeners();
-    setRemoteParticipants((prev) => prev.filter((p) => p !== participant));
   };
 
   useEffect(() => {
@@ -129,6 +119,7 @@ const Room = () => {
       room.disconnect();
     }
     setRoom(null);
+    navigate("/lobby")
   };
 
   const sendSummary = () => {

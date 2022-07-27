@@ -59,21 +59,21 @@ database.once("connected", () => {
 //   next();
 // });
 
-app.post("/api/token", (req, res) => {
-  const identity = req.body.identity;
-  const room = req.body.room;
-  const token = getVideoToken(identity, room);
-  rooms.findOne({ id: room }, function (err3, data) {
-    if (data) {
-      users.findOne({ username: identity }, function (err, user) {
-        data.participants.push(identity);
-        data.participantEmails.push(user.email);
-        data.save();
-      });
-    }
-  });
-  res.send(JSON.stringify({ token: token }));
-});
+// app.post("/api/token", (req, res) => {
+//   const identity = req.body.identity;
+//   const room = req.body.room;
+//   const token = getVideoToken(identity, room);
+//   rooms.findOne({ id: room }, function (err3, data) {
+//     if (data) {
+//       users.findOne({ username: identity }, function (err, user) {
+//         data.participants.push(identity);
+//         data.participantEmails.push(user.email);
+//         data.save();
+//       });
+//     }
+//   });
+//   res.send(JSON.stringify({ token: token }));
+// });
 
 //Check if room exists
 app.get("/api/room/:roomId", (req, res) => {
@@ -87,26 +87,28 @@ app.get("/api/room/:roomId", (req, res) => {
 });
 
 //Get token to access existing room
-//TODO: This is essentially duplicate of /api/token, remove that one and shift the db stuff here
 app.post("/api/room/:roomId/token", (req, res) => {
   const roomId = req.params.roomId;
   const identity = req.body.identity;
   const token = getVideoToken(identity, roomId);
+
+  rooms.findOne({ id: roomId }, function (err3, data) {
+    if (data) {
+      users.findOne({ username: identity }, function (err, user) {
+        data.participants.push(identity);
+        data.participantEmails.push(user.email);
+        data.save();
+      });
+    }
+  });
+
   res.send(JSON.stringify({ token: token, id: roomId }));
 });
 
-//Just returns unique identifier for room
+//Returns unique identifier for room, and identity associated with the created room is the host
 app.post("/api/room", (req, res) => {
-  res.send(JSON.stringify({ id: uuid.v4() }));
-});
-
-//TODO: Phase this out, room creation will just generate a new uuid and the /api/room:roomID/token will allow access to room
-//Create a new room, return the id and token to access the room
-app.post("/api/room/token", (req, res) => {
   const roomId = uuid.v4();
   const identity = req.body.identity;
-  const token = getVideoToken(identity, roomId);
-
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
   rooms.create({ id: roomId }, function (err2, createdRoom) {
     console.log(err2);
@@ -117,8 +119,28 @@ app.post("/api/room/token", (req, res) => {
       createdRoom.save();
     });
   });
-  res.send(JSON.stringify({ token: token, id: roomId }));
+  res.send(JSON.stringify({ id: roomId }));
 });
+
+// //TODO: Phase this out, room creation will just generate a new uuid and the /api/room:roomID/token will allow access to room
+// //Create a new room, return the id and token to access the room
+// app.post("/api/room/token", (req, res) => {
+//   const roomId = uuid.v4();
+//   const identity = req.body.identity;
+//   const token = getVideoToken(identity, roomId);
+
+//   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
+//   rooms.create({ id: roomId }, function (err2, createdRoom) {
+//     console.log(err2);
+//     if (err2) return res.status(500).end(err2);
+//     users.findOne({ username: identity }, function (err, user) {
+//       createdRoom.participants.push(identity);
+//       createdRoom.participantEmails.push(user.email);
+//       createdRoom.save();
+//     });
+//   });
+//   res.send(JSON.stringify({ token: token, id: roomId }));
+// });
 
 app.use(
   session({
@@ -139,7 +161,7 @@ app.use(function (req, res, next) {
 });
 
 // sign up route
-app.post("/api/signup/", function (req, res, next) {
+app.post("/api/users", function (req, res, next) {
   // check for missing info
   if (!("username" in req.body))
     return res.status(400).end("username is missing");

@@ -32,7 +32,7 @@ function Signup() {
     const creds = { username: user, email: email, password: pass };
 
     // Fetch call to sign user in
-    fetch(`http://localhost:5000/api/signup/`, {
+    fetch(`http://localhost:5000/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
