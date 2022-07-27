@@ -59,22 +59,6 @@ database.once("connected", () => {
 //   next();
 // });
 
-// app.post("/api/token", (req, res) => {
-//   const identity = req.body.identity;
-//   const room = req.body.room;
-//   const token = getVideoToken(identity, room);
-//   rooms.findOne({ id: room }, function (err3, data) {
-//     if (data) {
-//       users.findOne({ username: identity }, function (err, user) {
-//         data.participants.push(identity);
-//         data.participantEmails.push(user.email);
-//         data.save();
-//       });
-//     }
-//   });
-//   res.send(JSON.stringify({ token: token }));
-// });
-
 //Check if room exists
 app.get("/api/room/:roomId", (req, res) => {
   client.video.v1
@@ -84,6 +68,29 @@ app.get("/api/room/:roomId", (req, res) => {
     .catch(() => {
       res.status(404).send(JSON.stringify({ err: "Room not found" }));
     });
+});
+
+//end room, all connected participants will be disconnected; this is restricted to host of the room
+//TODO: Ensure this is only enabled for a host
+app.delete("/api/room/:roomId", (req, res) => {
+  const identity = req.body.identity;
+  //TODO: Ensure that this identity matches the host of the room in the DB
+  client.video.v1
+    .rooms(req.params.roomId)
+    .update({ status: "completed" })
+    .then((room) =>
+      res.status(200).send(JSON.stringify({ room: room.uniqueName }))
+    );
+});
+
+//Get the host of an existing room
+app.get("/api/room/:roomId/host", (req, res) => {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (room) {
+      res.status(200).send(JSON.stringify({ host: room.host }));
+    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    if (err) res.status(500).send(err);
+  });
 });
 
 //Get token to access existing room
@@ -101,7 +108,6 @@ app.post("/api/room/:roomId/token", (req, res) => {
       });
     }
   });
-
   res.send(JSON.stringify({ token: token, id: roomId }));
 });
 
@@ -116,31 +122,13 @@ app.post("/api/room", (req, res) => {
     users.findOne({ username: identity }, function (err, user) {
       createdRoom.participants.push(identity);
       createdRoom.participantEmails.push(user.email);
+      //Added idea of a host
+      createdRoom.host = identity;
       createdRoom.save();
     });
   });
   res.send(JSON.stringify({ id: roomId }));
 });
-
-// //TODO: Phase this out, room creation will just generate a new uuid and the /api/room:roomID/token will allow access to room
-// //Create a new room, return the id and token to access the room
-// app.post("/api/room/token", (req, res) => {
-//   const roomId = uuid.v4();
-//   const identity = req.body.identity;
-//   const token = getVideoToken(identity, roomId);
-
-//   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
-//   rooms.create({ id: roomId }, function (err2, createdRoom) {
-//     console.log(err2);
-//     if (err2) return res.status(500).end(err2);
-//     users.findOne({ username: identity }, function (err, user) {
-//       createdRoom.participants.push(identity);
-//       createdRoom.participantEmails.push(user.email);
-//       createdRoom.save();
-//     });
-//   });
-//   res.send(JSON.stringify({ token: token, id: roomId }));
-// });
 
 app.use(
   session({
@@ -225,7 +213,6 @@ app.post("/api/login", (req, res) => {
       });
     }
   );
-
   // return res.json(req.session.user);
 });
 

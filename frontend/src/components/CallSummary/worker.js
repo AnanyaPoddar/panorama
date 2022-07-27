@@ -1,6 +1,6 @@
 // worker script
 export default () => {
-  onmessage = e => {
+  onmessage = (e) => {
     let { emails, names } = e.data;
     console.log(e.data);
     console.log("in worler", emails);
@@ -8,25 +8,25 @@ export default () => {
     let html = `Attendees: ${names}<br/>`;
     let to = { email: emails, html: html };
 
-    fetch(`http://178.128.227.211:5000/api/text-mail`, {
+    fetch(`http://localhost:5000/api/text-mail`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(to)
+      body: JSON.stringify(to),
     })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         const success = "success";
         const time = new Date().getTime();
         console.log("done in worker");
 
         postMessage({
           success,
-          time
+          time,
         });
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error:", error);
       });
   };

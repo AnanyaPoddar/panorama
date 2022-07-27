@@ -3,7 +3,6 @@ import {
   AppBar,
   Toolbar,
   Button,
-  Box,
   ThemeProvider,
   createTheme,
 } from "@mui/material";
@@ -53,7 +52,12 @@ const Navbar = () => {
       <AppBar position="sticky">
         <Toolbar id="navbar">
           <div className="nav-left">
-            <h2 onClick={() => navigate("/")}>Panorama</h2>
+            {/* Redirects to lobby if logged in, otherwise to the homepage */}
+            {loggedIn ? (
+              <h2 onClick={() => navigate("/lobby")}>Panorama</h2>
+            ) : (
+              <h2 onClick={() => navigate("/")}>Panorama</h2>
+            )}
           </div>
           <div className="nav-right">
             {loggedIn ? (

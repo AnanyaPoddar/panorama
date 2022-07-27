@@ -18,6 +18,8 @@ const Room = () => {
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
+  const [isHost, setIsHost] = useState(false);
+
   //the mode can either be "draw" or "vid" corresponding to seeing the whiteboard or video
   const [mode, setMode] = useState("vid");
   const [remoteParticipants, setRemoteParticipants] = useState([]);
@@ -59,6 +61,18 @@ const Room = () => {
       .then((newRoom) => {
         setRoom(newRoom);
       })
+      //Check if is host
+      .then(
+        fetch(`http://localhost:5000/api/room/${id}/host`, {
+          method: "GET",
+        })
+          .then((res) => {
+            return res.json();
+          })
+          .then((json) => {
+            if (json.host === user.name) setIsHost(true);
+          })
+      )
       .catch((err) => console.log(err));
   };
 
@@ -78,6 +92,10 @@ const Room = () => {
       room.on("participantDisconnected", removeParticipant);
       //local participant disconnects
       window.addEventListener("pagehide", () => room.disconnect());
+      //TODO: Show some message to show that they have been disconnected from the room
+      room.on("disconnected", () => navigate("/lobby"));
+      //TODO: Show some message to show that the call has ended from the host
+      room.on("roomEnded", () => navigate("/lobby"));
     }
   }, [room]);
 
@@ -119,7 +137,22 @@ const Room = () => {
       room.disconnect();
     }
     setRoom(null);
-    navigate("/lobby")
+    navigate("/lobby");
+  };
+
+  const endCall = () => {
+    fetch(`http://localhost:5000/api/room/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        identity: user.name,
+      }),
+    }).then((res) => {
+      if (res.status === 200) sendSummary();
+      //TODO: Handle case when status not 200, show appropriate error message
+    });
   };
 
   const sendSummary = () => {
@@ -127,13 +160,11 @@ const Room = () => {
       .then((res) => res.json())
       .then((json) => {
         const worker = new WorkerBuilder(Worker);
-        console.log("here", json.emails);
         const emails = json.emails;
         const names = json.names;
         worker.postMessage({ emails, names });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {
-          console.log(e.data);
           worker.terminate();
         };
       });
@@ -187,37 +218,31 @@ const Room = () => {
           <br />
           <div className="controls">
             {audioOn ? (
-              <Button variant="outlined" onClick={() => mute()}>
+              <Button variant="outlined" onClick={mute}>
                 <MicOff /> Turn Mic Off
               </Button>
             ) : (
-              <Button variant="outlined" onClick={() => unmute()}>
+              <Button variant="outlined" onClick={unmute}>
                 <Mic /> Turn Mic On
               </Button>
             )}
             {videoOn ? (
-              <Button variant="outlined" onClick={() => stopVideo()}>
+              <Button variant="outlined" onClick={stopVideo}>
                 <VideocamOff /> Turn Video Off
               </Button>
             ) : (
-              <Button variant="outlined" onClick={() => startVideo()}>
+              <Button variant="outlined" onClick={startVideo}>
                 <Videocam /> Turn Video On
               </Button>
             )}
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => leaveRoom()}
-            >
+            <Button variant="outlined" color="error" onClick={leaveRoom}>
               Leave Call
             </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => sendSummary()}
-            >
-              Send Email
-            </Button>
+            {isHost && (
+              <Button variant="outlined" color="error" onClick={endCall}>
+                End Call For All
+              </Button>
+            )}
           </div>
         </>
       )}
