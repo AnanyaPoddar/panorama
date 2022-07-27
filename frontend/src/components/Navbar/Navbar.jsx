@@ -23,6 +23,7 @@ const Navbar = () => {
     else setLoggedIn(false);
   }, [user]);
 
+  //TODO: Move logout into its own component?
   const logout = (e) => {
     if (user) {
       fetch(`http://localhost:5000/api/logout`, {
@@ -30,6 +31,7 @@ const Navbar = () => {
       })
         .then((response) => {
           if (response.status === 200) setUser(null);
+          navigate("/");
         })
         .catch((error) => {
           console.error("Error:", error);
@@ -51,9 +53,7 @@ const Navbar = () => {
       <AppBar position="sticky">
         <Toolbar id="navbar">
           <div className="nav-left">
-            <h2 onClick={() => navigate("/")} textAlign="center">
-              Panorama
-            </h2>
+            <h2 onClick={() => navigate("/")}>Panorama</h2>
           </div>
           <div className="nav-right">
             {loggedIn ? (

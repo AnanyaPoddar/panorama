@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { Button, TextField } from "@mui/material";
-import { connect } from "twilio-video";
 import { AuthContext } from "../../context/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 import "../Form.css";
 import Room from "../Room/Room";
@@ -12,6 +12,8 @@ const JoinRoom = () => {
   const [room, setRoom] = useState(null);
   const [errors, setErrors] = useState("");
 
+  const navigate = useNavigate();
+
   //passed to Room so that if the local participant leaves, this can be set to null, or vice versa
   const changeRoom = (room) => {
     setRoom(room);
@@ -20,28 +22,11 @@ const JoinRoom = () => {
   const joinRoom = (e) => {
     e.preventDefault();
     fetch(`http://localhost:5000/api/room/${roomId}`).then((res) => {
-      //Connect to room if it exists, otherwise set error to show it does not exist
+      //Go to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
-        fetch(`http://localhost:5000/api/token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            identity: user.name,
-            room: roomId,
-          }),
-        })
-          .then((res) => {
-            return res.json();
-          })
-          .then((json) => {
-            connect(json.token, { name: roomId }).then((room) => {
-              setRoom(room);
-            });
-          })
-          .catch((err) => console.log(err));
+        navigate(`/${roomId}`);
       } else {
+        //TODO: Set appropriate error, may not just be 404
         setErrors("Room Not Found");
       }
     });

@@ -150,7 +150,7 @@ const Room = () => {
 
   return (
     <div className="room page">
-      {room && (
+      {user && room && (
         <>
           <div className="room-invite">
             <p>
@@ -179,66 +179,54 @@ const Room = () => {
           </ToggleButtonGroup>
           <br />
           <br />
-          <div className="videos-container">
-            <div className="participant" id="local-user">
-              <Participant
-                participant={room.localParticipant}
-                videoOn={videoOn}
-                audioOn={audioOn}
-              />
-              <h>{room.localParticipant.identity}</h>
-            </div>
-            <div>
+          {mode === "vid" && (
+            <div className="videos-container">
+              <div className="participant" id="local-user">
+                <Participant
+                  participant={room.localParticipant}
+                  videoOn={videoOn}
+                  audioOn={audioOn}
+                />
+              </div>
               {renderRemoteParticipants}
-              {remoteParticipants.map((participant) => (
-                <div className="participant">
-                  <h2>{participant.identity}</h2>
-                  <Participant
-                    key={participant.sid}
-                    participant={participant}
-                    videoOn={true}
-                    audioOn={true}
-                  />
-                </div>
-              ))}
             </div>
-            <Whiteboard roomId={id} />
-            <br />
-            <br />
-            <div className="controls">
-              {audioOn ? (
-                <Button variant="outlined" onClick={() => mute()}>
-                  <MicOff /> Turn Mic Off
-                </Button>
-              ) : (
-                <Button variant="outlined" onClick={() => unmute()}>
-                  <Mic /> Turn Mic On
-                </Button>
-              )}
-              {videoOn ? (
-                <Button variant="outlined" onClick={() => stopVideo()}>
-                  <VideocamOff /> Turn Video Off
-                </Button>
-              ) : (
-                <Button variant="outlined" onClick={() => startVideo()}>
-                  <Videocam /> Turn Video On
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => leaveRoom()}
-              >
-                Leave Call
+          )}
+          {mode === "draw" && <Whiteboard roomId={id} />}
+          <br />
+          <br />
+          <div className="controls">
+            {audioOn ? (
+              <Button variant="outlined" onClick={() => mute()}>
+                <MicOff /> Turn Mic Off
               </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => sendSummary()}
-              >
-                Send Email
+            ) : (
+              <Button variant="outlined" onClick={() => unmute()}>
+                <Mic /> Turn Mic On
               </Button>
-            </div>
+            )}
+            {videoOn ? (
+              <Button variant="outlined" onClick={() => stopVideo()}>
+                <VideocamOff /> Turn Video Off
+              </Button>
+            ) : (
+              <Button variant="outlined" onClick={() => startVideo()}>
+                <Videocam /> Turn Video On
+              </Button>
+            )}
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => leaveRoom()}
+            >
+              Leave Call
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => sendSummary()}
+            >
+              Send Email
+            </Button>
           </div>
         </>
       )}
