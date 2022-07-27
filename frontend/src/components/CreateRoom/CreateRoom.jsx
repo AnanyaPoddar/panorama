@@ -1,4 +1,5 @@
 import { Button, TextField } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { connect } from "twilio-video";
 
 import Room from "../Room/Room";
@@ -7,46 +8,40 @@ import { useContext, useState } from "react";
 import "../Form.css";
 import { AuthContext } from "../../context/AuthProvider";
 
-const CreateRoom = ({ setInRoom }) => {
+const CreateRoom = () => {
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [roomId, setRoomId] = useState(null);
-  const [token, setToken] = useState(null);
   const [room, setRoom] = useState(null);
 
-  const changeRoom = room => {
+  const changeRoom = (room) => {
     setRoom(room);
   };
 
-  const createRoom = e => {
+  const createRoom = (e) => {
     e.preventDefault();
-    fetch(`http://178.128.227.211:5000/api/room/token`, {
+    fetch(`http://localhost:5000/api/room`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        identity: user.name
-      })
+        identity: user.name,
+      }),
     })
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(json => {
+      .then((json) => {
         setRoomId(json.id);
-        setToken(json.token);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
   };
 
-  //actually connect to the room
-  const joinRoom = e => {
+  //redirect to room
+  const joinRoom = (e) => {
     e.preventDefault();
-    connect(token, { name: roomId })
-      .then(newRoom => {
-        setInRoom(true);
-        setRoom(newRoom);
-      })
-      .catch(err => console.log(err));
+    navigate(`/${roomId}`);
   };
 
   return (
