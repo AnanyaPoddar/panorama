@@ -8,7 +8,7 @@ export default () => {
     let html = `Attendees: ${names}<br/>`;
     let to = { email: emails, html: html };
 
-    fetch(`https://panoramas.social:5000/api/text-mail`, {
+    fetch(`https://api.panoramas.social/api/text-mail`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
