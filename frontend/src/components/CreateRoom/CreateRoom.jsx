@@ -19,7 +19,7 @@ const CreateRoom = ({ setInRoom }) => {
 
   const createRoom = e => {
     e.preventDefault();
-    fetch(`http://178.128.227.211:5000/api/room/token`, {
+    fetch(`http://localhost:5000/api/room/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

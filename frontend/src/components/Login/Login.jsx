@@ -19,7 +19,7 @@ function Login() {
     const creds = { username: username, password: pass };
 
     // Fetch call to sign user in
-    fetch(`http://178.128.227.211:5000/api/login`, {
+    fetch(`http://localhost:5000/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -84,7 +84,7 @@ function Login() {
           Log In
         </Button>
         <br />
-        <a href="http://178.128.227.211:5000/api/linkedin/auth">
+        <a href="http://localhost:5000/api/linkedin/auth">
           <img className="linkedinButton" src={linkedinButton} />
         </a>
       </form>

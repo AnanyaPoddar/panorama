@@ -19,10 +19,10 @@ const JoinRoom = ({ setInRoom }) => {
 
   const joinRoom = e => {
     e.preventDefault();
-    fetch(`http://178.128.227.211:5000/api/room/${roomId}`).then(res => {
+    fetch(`http://localhost:5000/api/room/${roomId}`).then(res => {
       //Connect to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
-        fetch(`http://178.128.227.211:5000/api/token`, {
+        fetch(`http://localhost:5000/api/token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

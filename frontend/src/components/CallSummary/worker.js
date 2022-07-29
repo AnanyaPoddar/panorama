@@ -8,7 +8,7 @@ export default () => {
     let html = `Attendees: ${names}<br/>`;
     let to = { email: emails, html: html };
 
-    fetch(`http://178.128.227.211:5000/api/text-mail`, {
+    fetch(`http://localhost:5000/api/text-mail`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
