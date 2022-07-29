@@ -79,7 +79,7 @@ const Room = ({ room, id, setRoom }) => {
     setRoom(null);
   };
   const sendSummary = () => {
-    fetch(`http://localhost:5000/api/room/${id}/participants`)
+    fetch(`http://178.128.227.211:5000/api/room/${id}/participants`)
       .then(res => res.json())
       .then(json => {
         const worker = new WorkerBuilder(Worker);
