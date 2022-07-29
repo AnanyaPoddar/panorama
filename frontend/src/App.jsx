@@ -5,6 +5,7 @@ import Lobby from "./views/Lobby/Lobby";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./views/Home/Home";
 import Signin from "./views/Signin/Signin";
+import ProtectedRoutes from "./components/ProtectedRoutes/ProtectedRoute";
 
 function App() {
   return (
@@ -12,8 +13,10 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <Routes>
-          <Route path="/room/:id" element={<Room />} />
-          <Route path="/lobby" element={<Lobby />} />
+          <Route element={<ProtectedRoutes />}>
+            <Route path="/room/:id" element={<Room />} />
+            <Route path="/lobby" element={<Lobby />} />
+          </Route>
           <Route path="/signin" element={<Signin />} />
           <Route path="/" element={<Home />} />
         </Routes>

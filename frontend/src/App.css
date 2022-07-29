@@ -5,6 +5,10 @@
   align-items: center;
 }
 
+.protected {
+  justify-content: center;
+}
+
 body {
   background-color: #fafafc;
   font-family: "Roboto", sans-serif;

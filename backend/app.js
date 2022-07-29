@@ -31,6 +31,22 @@ app.use(
   })
 );
 
+//middleware
+const isAuthenticated = function (req, res, next) {
+  if (!req.session.username)
+    return res.status(401).json({ errors: "Access Denied" });
+  next();
+};
+
+//Get the current user
+app.get("/api/user", function (req, res) {
+  if (req.session.username) {
+    return res.status(200).json(req.session.username);
+  } else {
+    return res.status(200).json(null);
+  }
+});
+
 const server = http.createServer(app);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -97,7 +113,6 @@ app.get("/api/room/:roomId/participants", (req, res) => {
 app.delete("/api/room/:roomId", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (room) {
-      console.log(req.session);
       //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
       if (room.host !== req.body.identity)
         res

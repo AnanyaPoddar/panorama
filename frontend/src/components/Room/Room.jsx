@@ -13,9 +13,8 @@ import {
   Videocam,
   VideocamOff,
   ChevronRight,
-  People,
 } from "@mui/icons-material";
-import { connect } from "twilio-video";
+import { connect, VideoProcessor } from "twilio-video";
 
 import "./Room.css";
 import Participant from "../Participant/Participant";
@@ -30,8 +29,9 @@ const Room = () => {
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
-  //TODO: Find a more secure way to do this
-  const [isHost, setIsHost] = useState(false);
+  //set the host of the current room, check this against the current user to ensure that they are the same
+  //Security-wise, this is better than setting some flag "isHost"
+  const [host, setHost] = useState("");
   const [openSidebar, setOpenSidebar] = useState(true);
 
   //collapsibleContent can either correspond to "metadata" - metadata of room including participants, or "vid" - to display paginated videos
@@ -69,15 +69,14 @@ const Room = () => {
       .then((newRoom) => {
         setRoom(newRoom);
       })
-      //TODO: Security-wise, this doesn't seem great because someone could just set isHost true in the frontend ? Possibly add as isHost middleware somewhere to check this
-      //Check if is host, as hosts have extra controls including kicking out participants and ending call
+      //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
         fetch(`http://localhost:5000/api/room/${id}/host`)
           .then((res) => {
             return res.json();
           })
           .then((json) => {
-            if (json.host === user.name) setIsHost(true);
+            setHost(json.host);
           })
       )
       .catch((err) => console.log(err));
@@ -160,6 +159,7 @@ const Room = () => {
   const kickParticipant = (participant) => {
     console.log(participant);
     //TODO: Handle errors
+    //TODO: Use mui snackbar to show that participant has been kicked out
     fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
       method: "DELETE",
       headers: {
@@ -256,7 +256,7 @@ const Room = () => {
                   <b>{room.localParticipant.identity}</b>
                 </p>
                 <div className="participant-list">
-                  {isHost
+                  {host !== "" && host === user.name
                     ? remoteParticipants.map((participant) => (
                         <div className="participant-in-list">
                           <p>{participant.identity}</p>
@@ -312,18 +312,18 @@ const Room = () => {
                   <VideocamOff />
                 </IconButton>
               )}
-              <IconButton
+              {/* <IconButton
                 onClick={() => {
                   setOpenSidebar(true);
                   setCollapsibleContent("metadata");
                 }}
               >
                 <People />
-              </IconButton>
+              </IconButton> */}
               <Button variant="outlined" color="error" onClick={leaveRoom}>
                 Leave Call
               </Button>
-              {isHost && (
+              {host !== "" && host === user.name && (
                 <Button variant="contained" color="error" onClick={endCall}>
                   End Call For All
                 </Button>
