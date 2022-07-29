@@ -19,7 +19,7 @@ const CreateRoom = ({ setInRoom }) => {
 
   const createRoom = e => {
     e.preventDefault();
-    fetch(`https://panoramas.social:5000/api/room/token`, {
+    fetch(`https://api.panoramas.social/api/room/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

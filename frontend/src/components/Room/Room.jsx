@@ -79,7 +79,7 @@ const Room = ({ room, id, setRoom }) => {
     setRoom(null);
   };
   const sendSummary = () => {
-    fetch(`https://panoramas.social:5000/api/room/${id}/participants`)
+    fetch(`https://api.panoramas.social/api/room/${id}/participants`)
       .then(res => res.json())
       .then(json => {
         const worker = new WorkerBuilder(Worker);

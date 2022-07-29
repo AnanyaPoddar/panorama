@@ -10,7 +10,7 @@ export function useMultiplayerState(roomId) {
 
   // Create a websocket provider
   const provider = new WebsocketProvider(
-    "ws://panoramas.social:1234",
+    "ws://api.panoramas.social:1234",
     roomId,
     doc,
     {

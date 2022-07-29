@@ -19,10 +19,10 @@ const JoinRoom = ({ setInRoom }) => {
 
   const joinRoom = e => {
     e.preventDefault();
-    fetch(`https://panoramas.social:5000/api/room/${roomId}`).then(res => {
+    fetch(`https://api.panoramas.social/api/room/${roomId}`).then(res => {
       //Connect to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
-        fetch(`https://panoramas.social:5000/api/token`, {
+        fetch(`https://api.panoramas.social/api/token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
