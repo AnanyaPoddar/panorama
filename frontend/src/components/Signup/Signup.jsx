@@ -32,7 +32,7 @@ function Signup() {
     const creds = { username: user, email: email, password: pass };
 
     // Fetch call to sign user in
-    fetch(`http://178.128.227.211:5000/api/signup/`, {
+    fetch(`https://panoramas.social:5000/api/signup/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -99,7 +99,7 @@ function Signup() {
           Sign Up
         </Button>
         <br />
-        <a href="http://178.128.227.211:5000/api/linkedin/auth">
+        <a href="https://panoramas.social:5000/api/linkedin/auth">
           <img className="linkedinButton" src={linkedinButton} />
         </a>
       </form>
