@@ -70,24 +70,83 @@ app.get("/api/room/:roomId", (req, res) => {
     });
 });
 
-//end room, all connected participants will be disconnected; this is restricted to host of the room
-//TODO: Ensure this is only enabled for a host
-app.delete("/api/room/:roomId", (req, res) => {
-  const identity = req.body.identity;
-  //TODO: Ensure that this identity matches the host of the room in the DB
-  client.video.v1
-    .rooms(req.params.roomId)
-    .update({ status: "completed" })
-    .then((room) =>
-      res.status(200).send(JSON.stringify({ room: room.uniqueName }))
-    );
-});
-
 //Get the host of an existing room
 app.get("/api/room/:roomId/host", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (room) {
       res.status(200).send(JSON.stringify({ host: room.host }));
+    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    if (err) res.status(500).send(err);
+  });
+});
+
+//Get all participants of a room (in-progress or completed)
+app.get("/api/room/:roomId/participants", (req, res) => {
+  const roomId = req.params.roomId;
+  client.video.v1
+    .rooms(roomId)
+    .participants()
+    .fetch()
+    .then((participants) => {
+      console.log(participants);
+      res.status(200).send(JSON.stringify({ data: participants }));
+    });
+});
+
+//end room, all connected participants will be disconnected; this is restricted to host of the room
+app.delete("/api/room/:roomId", (req, res) => {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (room) {
+      console.log(req.session);
+      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
+      if (room.host !== req.body.identity)
+        res
+          .status(403)
+          .send(JSON.stringify({ err: "Only hosts can delete a room" }));
+      else {
+        client.video.v1
+          .rooms(req.params.roomId)
+          .update({ status: "completed" })
+          .then((room) =>
+            res.status(200).send(JSON.stringify({ room: room.uniqueName }))
+          );
+        //TODO: Handle case of errors
+      }
+    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    if (err) res.status(500).send(err);
+  });
+});
+
+//Remove participant from an in-progress room
+app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
+  const roomId = req.params.roomId;
+  const participant = req.params.participantName;
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (room) {
+      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
+      if (room.host !== req.body.identity)
+        res.status(403).send(
+          JSON.stringify({
+            err: "Only hosts can remove a participant from a room",
+          })
+        );
+      else {
+        client.video.v1
+          .rooms(roomId)
+          .participants(participant)
+          .update({ status: "disconnected" })
+          .then((p) => {
+            console.log("DISCONNECTED " + participant);
+
+            res.status(200).send(
+              JSON.stringify({
+                msg:
+                  "Removed participant " + participant + " with sid " + p.sid,
+              })
+            );
+          });
+        //TODO: Handle case of errors
+      }
     } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
     if (err) res.status(500).send(err);
   });

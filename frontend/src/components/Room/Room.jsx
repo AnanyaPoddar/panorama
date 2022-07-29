@@ -1,8 +1,20 @@
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
-import { ToggleButtonGroup, ToggleButton } from "@mui/material";
-import { Mic, MicOff, Videocam, VideocamOff } from "@mui/icons-material";
+import {
+  ToggleButtonGroup,
+  ToggleButton,
+  Drawer,
+  IconButton,
+} from "@mui/material";
+import {
+  Mic,
+  MicOff,
+  Videocam,
+  VideocamOff,
+  ChevronRight,
+  People,
+} from "@mui/icons-material";
 import { connect } from "twilio-video";
 
 import "./Room.css";
@@ -18,16 +30,20 @@ const Room = () => {
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
+  //TODO: Find a more secure way to do this
   const [isHost, setIsHost] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(true);
 
-  //the mode can either be "draw" or "vid" corresponding to seeing the whiteboard or video
-  const [mode, setMode] = useState("vid");
+  //collapsibleContent can either correspond to "metadata" - metadata of room including participants, or "vid" - to display paginated videos
+  const [collapsibleContent, setCollapsibleContent] = useState("vid");
+
   const [remoteParticipants, setRemoteParticipants] = useState([]);
   //audioOn set to true means unmuted
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
   const [participantEmails, setParticipantEmails] = useState([]);
 
+  //get token to connect to room with given id
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/${id}/token`, {
       method: "POST",
@@ -47,25 +63,16 @@ const Room = () => {
       .catch((err) => console.log(err));
   }, []);
 
-  const renderRemoteParticipants = remoteParticipants.map((participant) => (
-    <Participant
-      key={participant.sid}
-      participant={participant}
-      videoOn={true}
-      audioOn={true}
-    />
-  ));
-
+  //A user can only connect to a room if they receive a valid token to access that room, hence "room" will always be null unless a user has a valid grant to a room
   const connectToRoom = (token) => {
     connect(token, { name: id })
       .then((newRoom) => {
         setRoom(newRoom);
       })
-      //Check if is host
+      //TODO: Security-wise, this doesn't seem great because someone could just set isHost true in the frontend ? Possibly add as isHost middleware somewhere to check this
+      //Check if is host, as hosts have extra controls including kicking out participants and ending call
       .then(
-        fetch(`http://localhost:5000/api/room/${id}/host`, {
-          method: "GET",
-        })
+        fetch(`http://localhost:5000/api/room/${id}/host`)
           .then((res) => {
             return res.json();
           })
@@ -88,6 +95,7 @@ const Room = () => {
 
     if (room) {
       room.participants.forEach(addParticipant);
+      //listen for changes in participants in room
       room.on("participantConnected", addParticipant);
       room.on("participantDisconnected", removeParticipant);
       //local participant disconnects
@@ -98,6 +106,15 @@ const Room = () => {
       room.on("roomEnded", () => navigate("/lobby"));
     }
   }, [room]);
+
+  const renderRemoteParticipants = remoteParticipants.map((participant) => (
+    <Participant
+      key={participant.sid}
+      participant={participant}
+      videoOn={true}
+      audioOn={true}
+    />
+  ));
 
   const mute = () => {
     room.localParticipant.audioTracks.forEach((publication) =>
@@ -140,6 +157,20 @@ const Room = () => {
     navigate("/lobby");
   };
 
+  const kickParticipant = (participant) => {
+    console.log(participant);
+    //TODO: Handle errors
+    fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        identity: user.name,
+      }),
+    }).then((res) => console.log(res));
+  };
+
   const endCall = () => {
     fetch(`http://localhost:5000/api/room/${id}`, {
       method: "DELETE",
@@ -150,6 +181,7 @@ const Room = () => {
         identity: user.name,
       }),
     }).then((res) => {
+      //only send the summary if the call was successfully ended
       if (res.status === 200) sendSummary();
       //TODO: Handle case when status not 200, show appropriate error message
     });
@@ -169,81 +201,135 @@ const Room = () => {
         };
       });
   };
-
   return (
     <div className="room page">
+      {/* TODO: Show errors if room actually could not be created or something */}
+      {user && !room && <h2>Connecting to room ...</h2>}
       {user && room && (
         <>
-          <div className="room-invite">
-            <p>
-              <b>RoomId :</b> {id}
-            </p>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                navigator.clipboard.writeText(id);
-              }}
-            >
-              Copy Room Id
-            </Button>
-          </div>
-          <br />
-          <br />
-          <ToggleButtonGroup
-            color="primary"
-            value={mode}
-            exclusive
-            onChange={(e) => setMode(e.target.value)}
+          <Drawer
+            // variant="persistent"
+            variant="permanent"
+            anchor="right"
+            className="sidebar"
+            // open={openSidebar}
           >
-            <ToggleButton value="vid">Videos</ToggleButton>
-            <ToggleButton value="draw">Whiteboard</ToggleButton>
-          </ToggleButtonGroup>
-          <br />
-          <br />
-          {mode === "vid" && (
-            <div className="videos-container">
-              <div className="participant" id="local-user">
-                <Participant
-                  participant={room.localParticipant}
-                  videoOn={videoOn}
-                  audioOn={audioOn}
-                />
-              </div>
-              {renderRemoteParticipants}
+            <div className="sidebar-top">
+              <IconButton
+                variant="contained"
+                onClick={() => setOpenSidebar(false)}
+              >
+                <ChevronRight />
+              </IconButton>
             </div>
-          )}
-          {mode === "draw" && <Whiteboard roomId={id} />}
+            <ToggleButtonGroup
+              color="primary"
+              value={collapsibleContent}
+              exclusive
+              onChange={(e) => setCollapsibleContent(e.target.value)}
+            >
+              <ToggleButton value="vid">Videos</ToggleButton>
+              <ToggleButton value="metadata">Metadata</ToggleButton>
+            </ToggleButtonGroup>
+            <br />
+            <br />
+            {collapsibleContent === "metadata" ? (
+              <div>
+                <div className="room-invite">
+                  <p>
+                    <b>RoomId :</b> {id}
+                  </p>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(id);
+                    }}
+                  >
+                    Copy Room Id
+                  </Button>
+                </div>
+                <br />
+                <hr />
+                <h4>Participants</h4>
+                <p>
+                  <b>{room.localParticipant.identity}</b>
+                </p>
+                <div className="participant-list">
+                  {isHost
+                    ? remoteParticipants.map((participant) => (
+                        <div className="participant-in-list">
+                          <p>{participant.identity}</p>
+                          <Button
+                            color="error"
+                            variant="contained"
+                            onClick={() =>
+                              kickParticipant(participant.identity)
+                            }
+                          >
+                            Kick
+                          </Button>
+                        </div>
+                      ))
+                    : remoteParticipants.map((participant) => (
+                        <p>{participant.identity}</p>
+                      ))}
+                </div>
+              </div>
+            ) : (
+              <div className="videos-container">
+                <div id="local-user">
+                  <Participant
+                    participant={room.localParticipant}
+                    videoOn={videoOn}
+                    audioOn={audioOn}
+                  />
+                </div>
+                {renderRemoteParticipants}
+              </div>
+            )}
+          </Drawer>
+          <Whiteboard roomId={id} />
           <br />
           <br />
-          <div className="controls">
-            {audioOn ? (
-              <Button variant="outlined" onClick={mute}>
-                <MicOff /> Turn Mic Off
+          <Drawer variant="permanent" anchor="bottom">
+            <div className="controls">
+              {audioOn ? (
+                <IconButton onClick={mute}>
+                  <Mic />
+                </IconButton>
+              ) : (
+                <IconButton onClick={unmute} color="error">
+                  <MicOff />
+                </IconButton>
+              )}
+              {videoOn ? (
+                <IconButton onClick={stopVideo}>
+                  <Videocam />
+                </IconButton>
+              ) : (
+                <IconButton onClick={startVideo} color="error">
+                  <VideocamOff />
+                </IconButton>
+              )}
+              <IconButton
+                onClick={() => {
+                  setOpenSidebar(true);
+                  setCollapsibleContent("metadata");
+                }}
+              >
+                <People />
+              </IconButton>
+              <Button variant="outlined" color="error" onClick={leaveRoom}>
+                Leave Call
               </Button>
-            ) : (
-              <Button variant="outlined" onClick={unmute}>
-                <Mic /> Turn Mic On
-              </Button>
-            )}
-            {videoOn ? (
-              <Button variant="outlined" onClick={stopVideo}>
-                <VideocamOff /> Turn Video Off
-              </Button>
-            ) : (
-              <Button variant="outlined" onClick={startVideo}>
-                <Videocam /> Turn Video On
-              </Button>
-            )}
-            <Button variant="outlined" color="error" onClick={leaveRoom}>
-              Leave Call
-            </Button>
-            {isHost && (
-              <Button variant="outlined" color="error" onClick={endCall}>
-                End Call For All
-              </Button>
-            )}
-          </div>
+              {isHost && (
+                <Button variant="contained" color="error" onClick={endCall}>
+                  End Call For All
+                </Button>
+              )}
+            </div>
+          </Drawer>
         </>
       )}
     </div>

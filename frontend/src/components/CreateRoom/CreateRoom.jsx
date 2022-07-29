@@ -40,7 +40,7 @@ const CreateRoom = () => {
   //redirect to room
   const joinRoom = (e) => {
     e.preventDefault();
-    navigate(`/${roomId}`);
+    navigate(`/room/${roomId}`);
   };
 
   return (

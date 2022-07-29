@@ -1,5 +1,11 @@
 import { useContext, useState, useEffect } from "react";
-import { ToggleButtonGroup, ToggleButton, Button, Box } from "@mui/material";
+import {
+  ToggleButtonGroup,
+  ToggleButton,
+  Button,
+  Box,
+  Drawer,
+} from "@mui/material";
 import { AuthContext } from "../../context/AuthProvider";
 
 import JoinRoom from "../../components/JoinRoom/JoinRoom";

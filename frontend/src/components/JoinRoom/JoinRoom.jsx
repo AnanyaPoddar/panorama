@@ -22,7 +22,7 @@ const JoinRoom = () => {
     fetch(`http://localhost:5000/api/room/${roomId}`).then((res) => {
       //Go to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
-        navigate(`/${roomId}`);
+        navigate(`/room/${roomId}`);
       } else {
         //TODO: Set appropriate error, may not just be 404
         setErrors("Room Not Found");

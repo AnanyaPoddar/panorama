@@ -23,7 +23,7 @@ const Navbar = () => {
   }, [user]);
 
   //TODO: Move logout into its own component?
-  const logout = (e) => {
+  const logout = () => {
     if (user) {
       fetch(`http://localhost:5000/api/logout`, {
         method: "GET",
@@ -49,7 +49,7 @@ const Navbar = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AppBar position="sticky">
+      <AppBar position="sticky" id="appbar">
         <Toolbar id="navbar">
           <div className="nav-left">
             {/* Redirects to lobby if logged in, otherwise to the homepage */}

@@ -7,11 +7,11 @@ const Home = () => {
   const navigate = useNavigate();
   return (
     <div className="page" id="home">
-      <h1>Welcome to Panorama</h1>
-      <h4>
-        An all-inclusive collaboration tool that brings the advantages of
-        technology to traditional whiteboarding.
-      </h4>
+      <h1 id="title">Welcome to Panorama</h1>
+      <h3>
+        An all-inclusive collaboration tool to level up your whiteboarding
+        sessions.
+      </h3>
       <Button variant="outlined" onClick={() => navigate("/signin")}>
         Get Started
       </Button>
