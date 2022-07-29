@@ -8,7 +8,7 @@ export const roomID = `testroom`;
 
 // Create a websocket provider
 export const provider = new WebsocketProvider(
-  "ws://178.128.227.211:1234",
+  "ws://panoramas.social:1234",
   roomID,
   doc,
   {

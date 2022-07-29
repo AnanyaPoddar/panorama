@@ -217,7 +217,7 @@ passport.use(
     {
       clientID: process.env.LINKEDIN_KEY,
       clientSecret: process.env.LINKEDIN_SECRET,
-      callbackURL: "http://localhost:5000/api/linkedin/auth/callback",
+      callbackURL: "https://panoramas.social:5000/api/linkedin/auth/callback",
       scope: ["w_member_social", "r_emailaddress", "r_liteprofile"]
     },
     function(accessToken, refreshToken, profile, done) {
