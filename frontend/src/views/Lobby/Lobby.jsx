@@ -11,6 +11,7 @@ import { AuthContext } from "../../context/AuthProvider";
 import JoinRoom from "../../components/JoinRoom/JoinRoom";
 import CreateRoom from "../../components/CreateRoom/CreateRoom";
 import "./Lobby.css";
+import HostedRooms from "../../components/HostedRooms/HostedRooms";
 
 const Lobby = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -48,6 +49,7 @@ const Lobby = () => {
       {user && (
         <div>
           <div className="lobby page">
+            <HostedRooms/>
             <ToggleButtonGroup
               color="primary"
               value={type}

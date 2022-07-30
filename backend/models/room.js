@@ -15,8 +15,13 @@ const roomSchema = new mongoose.Schema({
   },
   //added idea of host
   host: {
-    type: String,
-  },
+    required: true,
+    type: String
+  }, 
+  name: {
+    required: true,
+    type: String
+  }
 });
 
 module.exports = mongoose.model("Rooms", roomSchema);

@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import Room from "../Room/Room";
@@ -12,6 +12,7 @@ const CreateRoom = () => {
   const { user } = useContext(AuthContext);
   const [roomId, setRoomId] = useState(null);
   const [room, setRoom] = useState(null);
+  const [roomName, setRoomName] = useState("");
 
   const changeRoom = (room) => {
     setRoom(room);
@@ -26,6 +27,7 @@ const CreateRoom = () => {
       },
       body: JSON.stringify({
         identity: user.name,
+        roomName: roomName
       }),
     })
       .then((res) => {
@@ -46,6 +48,13 @@ const CreateRoom = () => {
   return (
     <div>
       <form onSubmit={createRoom} className="form">
+      <TextField
+          variant="standard"
+          placeholder="Room name"
+          value={roomName}
+          onChange={(e) => setRoomName(e.target.value)}
+        />
+
         {!room && !roomId && (
           <>
             <br />
