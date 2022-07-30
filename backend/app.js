@@ -33,8 +33,8 @@ app.use(
 
 //middleware
 const isAuthenticated = function (req, res, next) {
-  if (!req.session.username)
-    return res.status(401).json({ errors: "Access Denied" });
+  /*if (!req.session.username)
+    return res.status(401).json({ errors: "Access Denied" });*/
   next();
 };
 
@@ -69,11 +69,40 @@ database.once("connected", () => {
 });
 
 //Again required for CORS
-// app.use(function(req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-//   res.header("Access-Control-Allow-Headers", "Content-Type");
-//   next();
-// });
+ app.use(function(req, res, next) {
+   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+   res.header("Access-Control-Allow-Headers", "Content-Type");
+   next();
+ });
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+
+//app.use(cookieParser());
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+app.use(function (req, res, next) {
+  console.log("HTTP request", (req.session.user), req.method, req.url, req.body);
+  next();
+});
+
+// get the current user of the app
+app.get("/api/user", function (req, res) {
+  if (req.session.user) {
+    return res.status(200).json(req.session.user);
+  } else {
+    return res.status(200).json(null);
+  }
+});
+
 
 //Check if room exists
 app.get("/api/room/:roomId", (req, res) => {
@@ -176,8 +205,8 @@ app.post("/api/room/:roomId/token", (req, res) => {
   rooms.findOne({ id: roomId }, function (err3, data) {
     if (data) {
       users.findOne({ username: identity }, function (err, user) {
-        data.participants.push(identity);
-        data.participantEmails.push(user.email);
+        /*data.participants.push(identity);
+        data.participantEmails.push(user.email);*/
         data.save();
       });
     }
@@ -190,12 +219,12 @@ app.post("/api/room", (req, res) => {
   const roomId = uuid.v4();
   const identity = req.body.identity;
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
-  rooms.create({ id: roomId }, function (err2, createdRoom) {
+  rooms.create({ id: roomId, name: req.body.roomName}, function (err2, createdRoom) {
     console.log(err2);
     if (err2) return res.status(500).end(err2);
-    users.findOne({ username: identity }, function (err, user) {
-      createdRoom.participants.push(identity);
-      createdRoom.participantEmails.push(user.email);
+    users.findOne({ email: identity }, function (err, user) {
+      createdRoom.participants.push(user.firstname + " " + user.lastname);
+      createdRoom.participantEmails.push(identity);
       //Added idea of a host
       createdRoom.host = identity;
       createdRoom.save();
@@ -204,23 +233,19 @@ app.post("/api/room", (req, res) => {
   res.send(JSON.stringify({ id: roomId }));
 });
 
-app.use(
-  session({
-    secret: process.env.SECRET_KEY,
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-
-app.use(cookieParser());
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.use(function (req, res, next) {
-  req.username = req.session.user ? req.session.user._id : null;
-  console.log("HTTP request", req.username, req.method, req.url, req.body);
-  next();
+//Return all the rooms that a user is host of
+app.post("/api/room/hosted", (req, res) => {
+  const host = req.body.identity;
+  rooms.find({host: host}, function (err, hostedRooms) {
+    if (err) res.status(500).send(err);
+    const roomnames = [];
+    hostedRooms.forEach(r => {
+      roomnames.push(r.name);
+    });
+    res.status(200).json({rooms: roomnames});
+  });
 });
+
 
 // sign up route
 app.post("/api/users", function (req, res, next) {
@@ -415,6 +440,7 @@ const transporter = nodemailer.createTransport({
   secure: true, // upgrades later with STARTTLS -- change this based on the PORT
 });
 
+// send email to participants
 app.post("/api/text-mail", function (req, res, next) {
   const { email, html } = req.body;
   const mailData = {
