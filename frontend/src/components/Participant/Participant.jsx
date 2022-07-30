@@ -1,23 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import "./Participant.css";
-import Track from "../Track/Track";
 
-const Participant = ({ participant, videoOn }) => {
+const Participant = ({ participant }) => {
   const [videos, setVideos] = useState([]);
   const [audios, setAudios] = useState([]);
   const videoRef = useRef();
   const audioRef = useRef();
 
-  // const [tracks, setTracks] = useState([]);
-
   const addTrack = (track) => {
-    // setTracks((tracks) => [...tracks, track]);
     if (track.kind === "video") setVideos((videos) => [...videos, track]);
     else setAudios((audios) => [...audios, track]);
   };
 
   const removeTrack = (track) => {
-    // setTracks((tracks) => tracks.filter((t) => t !== track));
     if (track.kind === "video")
       setVideos((videos) => videos.filter((v) => v !== track));
     else setAudios((audios) => audios.filter((a) => a !== track));
@@ -69,10 +64,6 @@ const Participant = ({ participant, videoOn }) => {
   return (
     <div className="participant">
       <div className="participant-name">{participant.identity}</div>
-      {/* {tracks.map((track) => (
-        <Track key={track} track={track} />
-      ))} */}
-      {console.log(videoOn, videos, videoRef)}
       <video ref={videoRef} autoPlay playsInline />
       <audio ref={audioRef} autoPlay />
     </div>
