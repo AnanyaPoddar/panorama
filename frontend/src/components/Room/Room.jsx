@@ -6,15 +6,24 @@ import {
   ToggleButton,
   Drawer,
   IconButton,
+  Tooltip,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import {
   Mic,
   MicOff,
   Videocam,
   VideocamOff,
-  ChevronRight,
+  Cancel,
+  ContentCopy,
+  Logout,
 } from "@mui/icons-material";
-import { connect, VideoProcessor } from "twilio-video";
+import { connect, VideoProcessor, createLocalVideoTrack } from "twilio-video";
 
 import "./Room.css";
 import Participant from "../Participant/Participant";
@@ -32,7 +41,10 @@ const Room = () => {
   //set the host of the current room, check this against the current user to ensure that they are the same
   //Security-wise, this is better than setting some flag "isHost"
   const [host, setHost] = useState("");
-  const [openSidebar, setOpenSidebar] = useState(true);
+  //only available for the host, when they wish to end the call they must confirm
+  const [openConfirmation, setOpenConfirmation] = useState(false);
+  //only available for the host, when they successfully kick out a participant
+  const [openKickedNotif, setOpenKickedNotif] = useState(false);
 
   //collapsibleContent can either correspond to "metadata" - metadata of room including participants, or "vid" - to display paginated videos
   const [collapsibleContent, setCollapsibleContent] = useState("vid");
@@ -130,26 +142,36 @@ const Room = () => {
   };
 
   const startVideo = () => {
+    createLocalVideoTrack().then((localTrack) => {
+      room.localParticipant.publishTrack(localTrack);
+      //own defined socket event to correctly redisplay video track
+      room.localParticipant.emit("videoTrackPublished", localTrack);
+    });
     room.localParticipant.videoTracks.forEach((publication) => {
       publication.track.enable();
-      publication.track.attach();
     });
     setVideoOn(true);
   };
 
   const stopVideo = () => {
     room.localParticipant.videoTracks.forEach((publication) => {
+      //own defined socket event to correctly hide video track
+      room.localParticipant.emit("videoTrackUnpublished", publication.track);
+      //For video, tracks must be stopped rather than just disabled
+      publication.unpublish();
+      publication.track.stop();
       publication.track.disable();
-      publication.track.detach();
+      // publication.track.detach();
     });
     setVideoOn(false);
   };
 
   const leaveRoom = () => {
     if (room.localParticipant.state === "connected") {
-      room.localParticipant.tracks.forEach((publication) =>
-        publication.track.stop()
-      );
+      room.localParticipant.tracks.forEach((publication) => {
+        publication.unpublish();
+        publication.track.stop();
+      });
       room.disconnect();
     }
     setRoom(null);
@@ -157,9 +179,7 @@ const Room = () => {
   };
 
   const kickParticipant = (participant) => {
-    console.log(participant);
     //TODO: Handle errors
-    //TODO: Use mui snackbar to show that participant has been kicked out
     fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
       method: "DELETE",
       headers: {
@@ -168,7 +188,35 @@ const Room = () => {
       body: JSON.stringify({
         identity: user.name,
       }),
-    }).then((res) => console.log(res));
+    })
+      .then((res) => {
+        if (res.status === 200) {
+          setOpenKickedNotif(true);
+          renderSuccessfulKick(participant);
+        }
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const renderSuccessfulKick = (participant) => {
+    //flash the "kicked participant out" notif for 3 seconds
+    setTimeout(() => {
+      setOpenKickedNotif(false);
+    }, 3000);
+    return (
+      <Snackbar
+        open={true}
+        autoHideDuration={4000}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+      >
+        <Alert severity="success">
+          {"Successfully kicked out participant " + participant}
+        </Alert>
+      </Snackbar>
+    );
   };
 
   const endCall = () => {
@@ -201,27 +249,15 @@ const Room = () => {
         };
       });
   };
+
   return (
     <div className="room page">
       {/* TODO: Show errors if room actually could not be created or something */}
       {user && !room && <h2>Connecting to room ...</h2>}
       {user && room && (
         <>
-          <Drawer
-            // variant="persistent"
-            variant="permanent"
-            anchor="right"
-            className="sidebar"
-            // open={openSidebar}
-          >
-            <div className="sidebar-top">
-              <IconButton
-                variant="contained"
-                onClick={() => setOpenSidebar(false)}
-              >
-                <ChevronRight />
-              </IconButton>
-            </div>
+          <Drawer variant="permanent" anchor="left" className="sidebar">
+            <div className="sidebar-top"></div>
             <ToggleButtonGroup
               color="primary"
               value={collapsibleContent}
@@ -239,15 +275,15 @@ const Room = () => {
                   <p>
                     <b>RoomId :</b> {id}
                   </p>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => {
-                      navigator.clipboard.writeText(id);
-                    }}
-                  >
-                    Copy Room Id
-                  </Button>
+                  <Tooltip title="Copy link">
+                    <IconButton
+                      onClick={() => {
+                        navigator.clipboard.writeText(id);
+                      }}
+                    >
+                      <ContentCopy />
+                    </IconButton>
+                  </Tooltip>
                 </div>
                 <br />
                 <hr />
@@ -282,35 +318,37 @@ const Room = () => {
                   <Participant
                     participant={room.localParticipant}
                     videoOn={videoOn}
-                    audioOn={audioOn}
                   />
                 </div>
                 {renderRemoteParticipants}
               </div>
             )}
-          </Drawer>
-          <Whiteboard roomId={id} />
-          <br />
-          <br />
-          <Drawer variant="permanent" anchor="bottom">
             <div className="controls">
               {audioOn ? (
-                <IconButton onClick={mute}>
-                  <Mic />
-                </IconButton>
+                <Tooltip title="Mute">
+                  <IconButton onClick={mute}>
+                    <Mic />
+                  </IconButton>
+                </Tooltip>
               ) : (
-                <IconButton onClick={unmute} color="error">
-                  <MicOff />
-                </IconButton>
+                <Tooltip title="Unmute">
+                  <IconButton onClick={unmute} color="error">
+                    <MicOff />
+                  </IconButton>
+                </Tooltip>
               )}
               {videoOn ? (
-                <IconButton onClick={stopVideo}>
-                  <Videocam />
-                </IconButton>
+                <Tooltip title="Stop Video">
+                  <IconButton onClick={stopVideo}>
+                    <Videocam />
+                  </IconButton>
+                </Tooltip>
               ) : (
-                <IconButton onClick={startVideo} color="error">
-                  <VideocamOff />
-                </IconButton>
+                <Tooltip title="Start Video">
+                  <IconButton onClick={startVideo} color="error">
+                    <VideocamOff />
+                  </IconButton>
+                </Tooltip>
               )}
               {/* <IconButton
                 onClick={() => {
@@ -320,16 +358,67 @@ const Room = () => {
               >
                 <People />
               </IconButton> */}
-              <Button variant="outlined" color="error" onClick={leaveRoom}>
-                Leave Call
-              </Button>
+              <Tooltip title="Leave Room">
+                <IconButton
+                  variant="outlined"
+                  color="error"
+                  onClick={leaveRoom}
+                >
+                  <Logout />
+                </IconButton>
+              </Tooltip>
+              {/* TODO: Possibly implement confirmation modal to make sure they want to do this */}
               {host !== "" && host === user.name && (
-                <Button variant="contained" color="error" onClick={endCall}>
-                  End Call For All
-                </Button>
+                <Tooltip title="End Room for All">
+                  <IconButton
+                    variant="contained"
+                    color="error"
+                    onClick={() => setOpenConfirmation(true)}
+                  >
+                    <Cancel />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {host !== "" && host === user.name && (
+                <Dialog
+                  open={openConfirmation}
+                  onClose={() => setOpenConfirmation(false)}
+                >
+                  <DialogTitle className="error">
+                    {"Are you sure you want to end the room?"}
+                  </DialogTitle>
+                  <DialogContent>
+                    <p>
+                      All participants will be removed from the call and lose
+                      access to this workspace.
+                    </p>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      onClick={() => setOpenConfirmation(false)}
+                    >
+                      Take Me Back
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={endCall}
+                      autoFocus
+                    >
+                      End this Room
+                    </Button>
+                  </DialogActions>
+                </Dialog>
               )}
             </div>
           </Drawer>
+          <Whiteboard roomId={id} />
+          {openKickedNotif && renderSuccessfulKick("user")}
+          <br />
+          <br />
         </>
       )}
     </div>

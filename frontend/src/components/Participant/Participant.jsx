@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import "./Participant.css";
 import Track from "../Track/Track";
 
-const Participant = ({ participant }) => {
+const Participant = ({ participant, videoOn }) => {
   const [videos, setVideos] = useState([]);
   const [audios, setAudios] = useState([]);
   const videoRef = useRef();
@@ -32,15 +32,22 @@ const Participant = ({ participant }) => {
 
   useEffect(() => {
     //Get Tracks that participant has already published
-    // setTracks(getInitialTracks(participant.videoTracks));
-    // setTracks(getInitialTracks(participant.audioTracks));
-    // console.log(tracks);
     setVideos(getInitialTracks(participant.videoTracks));
     setAudios(getInitialTracks(participant.audioTracks));
 
     //Checks for new tracks that a participant publishes
     participant.on("trackSubscribed", (track) => {
       addTrack(track);
+    });
+
+    //For own defined socket event when a user reshares their video
+    participant.on("videoTrackPublished", (track) => {
+      addTrack(track);
+    });
+
+    //For own defined event when a user unshares their video
+    participant.on("videoTrackUnpublished", (track) => {
+      removeTrack(track);
     });
 
     participant.on("trackUnsubscribed", (track) => {
@@ -65,6 +72,7 @@ const Participant = ({ participant }) => {
       {/* {tracks.map((track) => (
         <Track key={track} track={track} />
       ))} */}
+      {console.log(videoOn, videos, videoRef)}
       <video ref={videoRef} autoPlay playsInline />
       <audio ref={audioRef} autoPlay />
     </div>
