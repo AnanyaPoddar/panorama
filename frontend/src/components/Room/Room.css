@@ -85,3 +85,9 @@ video {
   width: fit-content;
   text-align: center;
 }
+
+.room .reactivate-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}

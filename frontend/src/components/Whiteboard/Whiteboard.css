@@ -1,13 +1,16 @@
 /* This is the generated class for the whiteboard */
 .c-jOyZnp {
-  /* height: 80vh;
-  width: 76%;
-  margin: auto 1.5%;
-  border: 1px solid black; */
   height: 80vh;
   width: 78%;
   margin-left: 18%;
   padding: 20px;
+  overflow: hidden;
+  left: 0;
+}
+
+.inactive-room .c-jOyZnp {
+  height: 90vh;
+  width: 100%;
   overflow: hidden;
   left: 0;
 }

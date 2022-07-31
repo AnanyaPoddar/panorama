@@ -1,8 +1,10 @@
-import { Button, Alert, AlertTitle } from "@mui/material";
+import { Alert, AlertTitle, Button } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, Navigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
+
 import Whiteboard from "../Whiteboard/Whiteboard";
+import "./Room.css";
 
 const InactiveRoom = () => {
   const { id } = useParams();
@@ -29,9 +31,13 @@ const InactiveRoom = () => {
   }, []);
 
   return (
-    <>
+    <div className="room page inactive">
       <Whiteboard roomId={id} />
-      <Button onClick={() => navigate(`/room/${id}`)}>
+      <Button
+        variant="contained"
+        className="reactivate-btn"
+        onClick={() => navigate(`/room/${id}`)}
+      >
         Reactivate this Room
       </Button>
       {!isHost && (
@@ -44,7 +50,7 @@ const InactiveRoom = () => {
         </div>
       )}
       {redirect && <Navigate to="/lobby" />}
-    </>
+    </div>
   );
 };
 
