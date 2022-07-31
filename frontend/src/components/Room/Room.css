@@ -18,6 +18,7 @@
   display: flex;
   column-gap: 1rem;
   justify-content: center;
+  align-items: center;
   position: fixed;
   bottom: 0;
   border-top: 1px solid #d4d0d0;
@@ -26,8 +27,7 @@
 }
 
 #local-user video {
-  padding: 5px;
-  background-color: #5da5ec;
+  border: 5px solid #5da5ec;
   color: white;
 }
 
@@ -36,11 +36,14 @@
   width: 100%;
   column-gap: 0.2rem;
   flex-wrap: wrap;
+  padding-bottom: 10vh;
+  justify-content: center;
+  align-items: center;
 }
 
 video {
   width: 95%;
-  padding: 5px;
+  border: 5px solid black;
   background: black;
 }
 
@@ -66,5 +69,19 @@ video {
   display: flex;
   column-gap: 1rem;
   justify-content: center;
-  align-items: center;
+  margin-bottom: 10px;
+}
+
+.participant-in-list > * {
+  flex: 50%;
+}
+
+.alert {
+  z-index: 10000;
+  position: absolute;
+  margin: auto;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  text-align: center;
 }

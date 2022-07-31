@@ -24,6 +24,12 @@ const Credits = () => {
             Medium - React-router-v6 protected routes
           </a>
         </li>
+        <li>
+          Typewriter animation{" "}
+          <a href="https://codesandbox.io/s/typewriter-css-text-animation-ot3cc">
+            Codesandbox
+          </a>
+        </li>
       </ul>
     </div>
   );

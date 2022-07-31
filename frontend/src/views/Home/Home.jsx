@@ -7,12 +7,20 @@ const Home = () => {
   const navigate = useNavigate();
   return (
     <div className="page" id="home">
-      <h1 id="title">Welcome to Panorama</h1>
-      <h3>
-        An all-inclusive collaboration tool to level up your whiteboarding
-        sessions.
+      <h1 id="title">
+        Welcome to <span className="emphasis">Panorama</span>
+      </h1>
+      <h3 id="slogan">
+        An collaboration tool to level up your whiteboarding sessions.
       </h3>
-      <Button variant="outlined" onClick={() => navigate("/signin")}>
+      <br />
+      <br />
+      <Button
+        className="action-btn"
+        variant="contained"
+        size="large"
+        onClick={() => navigate("/signin")}
+      >
         Get Started
       </Button>
     </div>

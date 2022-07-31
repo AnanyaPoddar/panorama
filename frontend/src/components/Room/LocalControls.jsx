@@ -5,7 +5,7 @@ import {
   Videocam,
   VideocamOff,
 } from "@mui/icons-material";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton, Tooltip, Button } from "@mui/material";
 import { createLocalVideoTrack } from "twilio-video";
 import { useNavigate } from "react-router-dom";
 
@@ -98,7 +98,7 @@ const LocalControls = ({
         </Tooltip>
       )}
       <Tooltip title="Leave Room">
-        <IconButton variant="outlined" color="error" onClick={leaveRoom}>
+        <IconButton variant="contained" color="error" onClick={leaveRoom}>
           <Logout />
         </IconButton>
       </Tooltip>
