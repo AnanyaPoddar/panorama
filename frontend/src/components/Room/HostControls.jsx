@@ -32,7 +32,6 @@ const HostControls = ({ id }) => {
     }).then((res) => {
       //only send the summary if the call was successfully ended
       if (res.status === 200) sendSummary();
-      //TODO: Handle case when status not 200, show appropriate error message
     });
   };
 
@@ -41,7 +40,6 @@ const HostControls = ({ id }) => {
       .then((res) => res.json())
       .then((json) => {
         const worker = new WorkerBuilder(Worker);
-        console.log(json);
         const emails = json.emails;
         const names = json.names;
         worker.postMessage({ emails, names });

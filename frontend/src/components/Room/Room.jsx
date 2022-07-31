@@ -1,11 +1,7 @@
-import { Cancel, ContentCopy } from "@mui/icons-material";
+import { ContentCopy } from "@mui/icons-material";
 import {
   Alert,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Drawer,
   IconButton,
   Snackbar,
@@ -14,16 +10,14 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { connect, createLocalVideoTrack } from "twilio-video";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
+import { connect } from "twilio-video";
 
 import { AuthContext } from "../../context/AuthProvider";
-import Worker from "../CallSummary/worker";
-import WorkerBuilder from "../CallSummary/WorkerBuilder";
 import Participant from "../Participant/Participant";
 import Whiteboard from "../Whiteboard/Whiteboard";
-import LocalControls from "./LocalControls";
 import HostControls from "./HostControls";
+import LocalControls from "./LocalControls";
 import "./Room.css";
 
 const Room = () => {
@@ -34,7 +28,7 @@ const Room = () => {
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
-  //set the host of the current room, check this against the current user to ensure that they are the same; security-wise, better than setting some flag "isHost"
+  //set the host of the current room, check this against the current user to ensure that they are the same
   const [host, setHost] = useState("");
   //only available for the host, when they successfully kick out a participant
   const [openKickedNotif, setOpenKickedNotif] = useState(false);
@@ -46,7 +40,9 @@ const Room = () => {
   //audioOn set to true means unmuted
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
-  const [participantEmails, setParticipantEmails] = useState([]);
+
+  const [redirect, setRedirect] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
 
   //pass to LocalControls to change state from child to parent
   const changeVideoOn = (val) => {
@@ -114,10 +110,34 @@ const Room = () => {
       room.on("participantDisconnected", removeParticipant);
       //local participant disconnects
       window.addEventListener("pagehide", () => room.disconnect());
-      //TODO: Show some message to show that they have been disconnected from the room
-      room.on("disconnected", () => navigate("/lobby"));
-      //TODO: Show some message to show that the call has ended from the host
-      room.on("roomEnded", () => navigate("/lobby"));
+      //Wait before redirecting
+      room.on("disconnected", () => {
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.name) {
+          navigate(`/room/inactive/${id}`);
+        } else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg(
+            "You have been disconnected form the room. Redirecting to lobby..."
+          );
+        }
+        //Wait until alert flashed before redirecting
+      });
+      room.on("roomEnded", () => {
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.name) {
+          navigate(`/room/inactive/${id}`);
+        }
+        //if the room was ended by the host, and the current user is not the host, redirect to lobby.
+        else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg("The host has ended the call. Redirecting to lobby...");
+        }
+      });
     }
   }, [room]);
 
@@ -234,11 +254,8 @@ const Room = () => {
               </div>
             ) : (
               <div className="videos-container">
-
                 <div id="local-user">
-                  <Participant
-                    participant={room.localParticipant}
-                  />
+                  <Participant participant={room.localParticipant} />
                 </div>
                 {renderRemoteParticipants}
               </div>
@@ -257,6 +274,12 @@ const Room = () => {
           </Drawer>
           <Whiteboard roomId={id} />
           {openKickedNotif && renderSuccessfulKick("user")}
+          {alertMsg !== "" && (
+            <Alert className="alert" severity="error">
+              {alertMsg}
+            </Alert>
+          )}
+          {redirect && <Navigate to="/lobby" />}
           <br />
           <br />
         </>

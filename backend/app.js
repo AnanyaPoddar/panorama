@@ -108,7 +108,7 @@ app.get("/api/user", function (req, res) {
 });
 
 
-//Check if room exists
+//Check if room exists and is in progress
 app.get("/api/room/:roomId", (req, res) => {
   console.log(req.params.roomId);
   client.video.v1
@@ -162,8 +162,10 @@ app.get("/api/room/:roomId/participants", (req, res) => {
     .participants()
     .fetch()
     .then((participants) => {
-      console.log(participants);
-      return res.status(200).send(JSON.stringify({ data: participants }));
+      res.status(200).send(JSON.stringify({ data: participants }));
+    })
+    .catch((err) => {
+      res.status(500).send(JSON.stringify({ err: err }));
     });
 });
 
@@ -183,8 +185,10 @@ app.delete("/api/room/:roomId", (req, res) => {
           .update({ status: "completed" })
           .then((room) =>
             res.status(200).send(JSON.stringify({ room: room.uniqueName }))
-          );
-        //TODO: Handle case of errors
+          )
+          .catch((err) => {
+            res.status(500).send(JSON.stringify({ err: err }));
+          });
       }
     } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
@@ -195,6 +199,7 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
   const roomId = req.params.roomId;
   const participant = req.params.participantName;
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (err) res.status(500).send(err);
     if (room) {
       //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
       if (room.host !== req.body.identity)
@@ -209,19 +214,18 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
           .participants(participant)
           .update({ status: "disconnected" })
           .then((p) => {
-            console.log("DISCONNECTED " + participant);
-
-            return res.status(200).send(
+            res.status(200).send(
               JSON.stringify({
                 msg:
                   "Removed participant " + participant + " with sid " + p.sid,
               })
             );
+          })
+          .catch((err) => {
+            res.status(500).send(JSON.stringify({ err: err }));
           });
-        //TODO: Handle case of errors
       }
-    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
-    if (err) res.status(500).send(err);
+    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
 });
 
@@ -232,16 +236,18 @@ app.post("/api/room/:roomId/token", (req, res) => {
   console.log("the identity is " + identity);
   const token = getVideoToken(identity, roomId);
 
-  rooms.findOne({ id: roomId }, function (err3, data) {
+  rooms.findOne({ id: roomId }, function (err2, data) {
+    if (err2) res.status(500).send(JSON.stringify({ err: err2 }));
     if (data) {
       users.findOne({ email: identity }, function (err, user) {
-        if (err) return res.status(500).end(err);
-        if (!user) return res.status(401).end("access denied");
+        if (err) res.status(500).send(JSON.stringify({ err: err }));
+        if (!user) return res.status(401).json({err: "access denied"});
         data.save();
       });
-      return res.send(JSON.stringify({ token: token, id: roomId }));
     }
+      else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
+  res.status(200).send(JSON.stringify({ token: token, id: roomId }));
 });
 
 //Returns unique identifier for room, and identity associated with the created room is the host
@@ -252,16 +258,15 @@ app.post("/api/room", (req, res) => {
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
   rooms.create({ id: roomId, name: req.body.roomName}, function (err2, createdRoom) {
     console.log(err2);
-    if (err2) return res.status(500).end(err2);
+    if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
     users.findOne({ email: identity }, function (err, user) {
-      if (err) return res.status(500).end(err);
-      if (!user) return res.status(401).end("access denied");
-      //Added idea of a host
+      if (err) return res.status(500).send(JSON.stringify({ err: err }));
+    users.findOne({ username: identity }, function (err, user) {
       createdRoom.host = identity;
       createdRoom.save();
     });
   });
-  return res.send(JSON.stringify({ id: roomId }));
+  res.status(200).send(JSON.stringify({ id: roomId }));
 });
 
 //Return all the rooms that a user is host of
@@ -375,8 +380,8 @@ app.post("/api/login", (req, res) => {
 // get room participants
 /*app.get("/api/room/:roomId/participants", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, data) {
-    if (err) return res.status(500).end(err);
-    return res.send(
+    if (err) return res.status(500).send(JSON.stringify({ err: err }));
+    return res.status(200).send(
       JSON.stringify({
         
       })

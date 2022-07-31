@@ -8,6 +8,7 @@ import Signin from "./views/Signin/Signin";
 import EmailVerification from "./components/Signup/EmailVerification";
 import Credits from "./views/Credits/Credits";
 import ProtectedRoutes from "./components/ProtectedRoutes/ProtectedRoute";
+import InactiveRoom from "./components/Room/InactiveRoom";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Routes>
           <Route element={<ProtectedRoutes />}>
             <Route path="/room/:id" element={<Room />} />
+            <Route path="/room/inactive/:id" element={<InactiveRoom />} />
             <Route path="/lobby" element={<Lobby />} />
           </Route>
           <Route path="/signin" element={<Signin />} />
