@@ -124,21 +124,16 @@ app.get("/api/room/:roomId", (req, res) => {
 
 // check completed rooms
 app.get("/api/room/:roomId/completed", (req, res) => {
-  console.log("hereeee")
   client.video.v1.rooms
           .list({
               status: 'completed'
             })
           .then(rooms => {
             rooms.forEach(r => {
-              console.log(r.uniqueName)
-              console.log(req.params.roomId);
             if (r.uniqueName===req.params.roomId) {
-              console.log(r.sid);
               client.video.v1.rooms(r.sid)
               .fetch()
               .then((room) => {
-                console.log(room);
                 res.status(200).send(JSON.stringify({ room: room }))
               })
               .catch(() => {
@@ -241,7 +236,6 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
 app.post("/api/room/:roomId/token", (req, res) => {
   const roomId = req.params.roomId;
   const identity = req.body.identity;
-  console.log("the identity is " + identity);
   const token = getVideoToken(identity, roomId);
 
   rooms.findOne({ id: roomId }, function (err2, data) {
@@ -346,7 +340,6 @@ app.post("/api/login", (req, res) => {
 
   let identity = req.body.identity;
   let password = req.body.password;
-  console.log(identity, password);
 
   // retrieve user from the database
   users.findOne(
@@ -356,7 +349,6 @@ app.post("/api/login", (req, res) => {
       if (!user) return res.status(401).json({error: "access denied"});
       if (!user.isVerified) return res.status(403).json({error: "email not verified"});
       let hash = user.password;
-      console.log(user);
       bcrypt.compare(password, hash, function (err, result) {
         if (!result) {
           return res.status(401).json({error: "access denied"});
@@ -432,7 +424,7 @@ app.get(
 app.get(
   "/api/linkedin/auth/callback",
   passport.authenticate("linkedin", {
-    successRedirect: "http://" + process.env.HOST + ":3000",
+    successRedirect: "http://" + process.env.HOST + ":3000/signin",
     failureRedirect: "/api/linkedin/auth/failure",
   })
 );
@@ -495,7 +487,6 @@ const transporter = nodemailer.createTransport({
 
 // send email to participants
 app.post("/api/text-mail", function (req, res, next) {
-  console.log("HEREEEEEEEE");
   const { email, html } = req.body;
   const mailData = {
     from: process.env.EMAIL,
@@ -523,7 +514,7 @@ app.get("/api/:userId/verify/:token", (req, res) => {
       found.save();
     });
     token.deleteOne({token: req.params.token}, function (err, tokfound) {
-      if (!tokfound) console.log("not here");
+      if (!tokfound) return res.status(404).send({ error: "Invalid link" });
       return res.status(200).send({ message: "Email verified successfully" });
     });
   });
@@ -531,8 +522,6 @@ app.get("/api/:userId/verify/:token", (req, res) => {
 
 
 app.post("/api/verification-mail", (req, res) => {
-  console.log('here i am');
-  console.log(req.body.identity);
   users.findOne({email: req.body.identity}, function (err, userFound) {
     if (err) return res.status(500).json({error: err});
     if (!userFound) return res.status(404).json({error: "Not found"});
