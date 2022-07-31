@@ -14,6 +14,8 @@ import kanban from "../../assets/kanban.png"
 import { mindmapTemplate } from "../../assets/mindmap.jsx";
 import { kanbanTemplate } from "../../assets/kanban.jsx";
 
+// auth context, check user == host
+
 function SimpleDialog(props) {
   const { onClose, template, open } = props;
 
@@ -94,7 +96,7 @@ const Whiteboard = ({ roomId }) => {
         <div>
           {template==null? (
             <Tldraw
-            showMenu={false}
+            showMenu={true}
             showMultiplayerMenu={false}
             showPages={false}
             onMount={onMount}
@@ -104,7 +106,7 @@ const Whiteboard = ({ roomId }) => {
           ) : (
             <Tldraw
             document={mydoc}
-            showMenu={false}
+            showMenu={true}
             showMultiplayerMenu={false}
             showPages={false}
             onMount={onMount}

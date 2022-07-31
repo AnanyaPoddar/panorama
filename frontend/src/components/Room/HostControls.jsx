@@ -48,7 +48,8 @@ const HostControls = ({ id }) => {
         /*const worker = new WorkerBuilder(Worker);
         const emails = json.emails;
         const names = json.names;
-        worker.postMessage({ emails, names });
+        const type = "summary";
+        worker.postMessage({ emails, names, type });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {
           worker.terminate();

@@ -5,6 +5,8 @@ import "../../components/Form.css";
 import "./Signup.css";
 import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
+import WorkerBuilder from "../CallSummary/WorkerBuilder";
+import Worker from '../CallSummary/worker';
 
 function Signup() {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -29,6 +31,7 @@ function Signup() {
   const nextPage = e => {
     //Prevent page reload
     e.preventDefault();
+    setSuccess(null);
 
     // check that a properly formatted email is given
     if (!(validator.isEmail(email))) {
@@ -59,6 +62,7 @@ function Signup() {
   const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
+    setSuccess(null);
 
     // check firstname length
     if (firstname.length < 1) {
@@ -100,7 +104,6 @@ function Signup() {
             setErrorMessage("Something is missing")
           }
         } else {
-          setSuccess("Success! Check your email for a verification link.");
           setPage(1);
           setEmail("");
           setPass("");
@@ -110,13 +113,24 @@ function Signup() {
           setDob("");
           return res.json();
         };
+      }).then((json) => {
+        const worker = new WorkerBuilder(Worker);
+        const emails = json.email;
+        console.log(email);
+        worker.postMessage({ emails, names: "", type: "verification" });
+        worker.onerror = (err) => err;
+        worker.onmessage = (e) => {
+          let {success, time} = e.data;
+          if (success==="success") {
+            setSuccess("Success! Check your email for a verification link.");
+          }
+          worker.terminate();
+        };
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
-
-
   return (
     <div>
       { page==1 ? ( 
