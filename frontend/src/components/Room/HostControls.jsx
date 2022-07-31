@@ -12,6 +12,7 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
 
 import WorkerBuilder from "../CallSummary/WorkerBuilder";
+import Worker from "../CallSummary/worker";
 
 const HostControls = ({ id }) => {
   const { user } = useContext(AuthContext);
@@ -45,15 +46,15 @@ const HostControls = ({ id }) => {
 
   const sendSummary = () => {
     
-        /*const worker = new WorkerBuilder(Worker);
-        const emails = json.emails;
-        const names = json.names;
+        const worker = new WorkerBuilder(Worker);
+        const emails = ['mushtaq.sara62@gmail.com'];
+        const names = ["Hi"];
         const type = "summary";
         worker.postMessage({ emails, names, type });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {
           worker.terminate();
-        };*/
+        };
   };
 
   return (

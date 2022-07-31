@@ -35,6 +35,7 @@ app.use(
 //Again required for CORS
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods",'GET, POST, OPTIONS, PUT, PATCH, DELETE')
   res.header("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
@@ -431,7 +432,7 @@ app.get(
 app.get(
   "/api/linkedin/auth/callback",
   passport.authenticate("linkedin", {
-    successRedirect: "http://" + process.env.HOST + ":3000/signin",
+    successRedirect: "http://" + process.env.HOST + ":3000",
     failureRedirect: "/api/linkedin/auth/failure",
   })
 );
@@ -494,6 +495,7 @@ const transporter = nodemailer.createTransport({
 
 // send email to participants
 app.post("/api/text-mail", function (req, res, next) {
+  console.log("HEREEEEEEEE");
   const { email, html } = req.body;
   const mailData = {
     from: process.env.EMAIL,
@@ -529,12 +531,14 @@ app.get("/api/:userId/verify/:token", (req, res) => {
 
 
 app.post("/api/verification-mail", (req, res) => {
+  console.log('here i am');
+  console.log(req.body.identity);
   users.findOne({email: req.body.identity}, function (err, userFound) {
     if (err) return res.status(500).json({error: err});
     if (!userFound) return res.status(404).json({error: "Not found"});
 
-    token.create({user: userFound._id, token: crypto.randomBytes(32).toString("hex")}, function (err, token) {
-      const url = `http://localhost:3000/users/${userCreated._id}/verify/${token.token}`
+    token.create({user: userFound._id, token: crypto.randomBytes(32).toString("hex")}, function (err, tok) {
+      const url = `http://localhost:3000/users/${userFound._id}/verify/${tok.token}`
       const mailData = {
         from: process.env.EMAIL,
         to: userFound.email,

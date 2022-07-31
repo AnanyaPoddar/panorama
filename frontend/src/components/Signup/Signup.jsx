@@ -116,7 +116,7 @@ function Signup() {
       }).then((json) => {
         const worker = new WorkerBuilder(Worker);
         const emails = json.email;
-        console.log(email);
+        console.log("here is what i got back" + emails);
         worker.postMessage({ emails, names: "", type: "verification" });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {

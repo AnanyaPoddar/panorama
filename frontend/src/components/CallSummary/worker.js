@@ -2,7 +2,7 @@
 export default () => {
   onmessage = (e) => {
     let { emails, names, type } = e.data;
-    console.log(emails, names, type)
+    console.log("WHYYY" + emails, names, type)
     if (type==="verification") {
       console.log(emails);
       fetch(`http://localhost:5000/api/verification-mail`, {
@@ -10,9 +10,10 @@ export default () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: { identity: emails},
+        body: JSON.stringify({identity: emails}),
       })
         .then((response) => {
+          console.log("NOT SUCCESS");
           if (response.status===200) {
             return response.json();
           }
@@ -30,6 +31,7 @@ export default () => {
         });
       
     } else if (type==="summary") {
+      console.log("lol" + emails, names, type);
       let html = `Attendees: ${names}<br/>`;
       let to = { email: emails, html: html };
   
@@ -55,6 +57,7 @@ export default () => {
         });
 
     } else {
+      console.log("NONe");
       postMessage({
         success: "fail",
         time: new Date().getTime(),
