@@ -110,19 +110,31 @@ const Room = () => {
       window.addEventListener("pagehide", () => room.disconnect());
       //Wait before redirecting
       room.on("disconnected", () => {
-        setTimeout(() => {
-          setRedirect(true);
-        }, 3000);
-        setAlertMsg(
-          "You have been disconnected form the room. Redirecting to lobby..."
-        );
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.name) {
+          navigate(`/room/inactive/${id}`);
+        } else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg(
+            "You have been disconnected form the room. Redirecting to lobby..."
+          );
+        }
         //Wait until alert flashed before redirecting
       });
       room.on("roomEnded", () => {
-        setTimeout(() => {
-          setRedirect(true);
-        }, 3000);
-        setAlertMsg("The host has ended the call. Redirecting to lobby...");
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.name) {
+          navigate(`/room/inactive/${id}`);
+        }
+        //if the room was ended by the host, and the current user is not the host, redirect to lobby.
+        else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg("The host has ended the call. Redirecting to lobby...");
+        }
       });
     }
   }, [room]);
