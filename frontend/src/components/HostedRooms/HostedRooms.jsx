@@ -60,6 +60,7 @@ const HostedRooms = () => {
   console.log("THIS IS CURRENT ROOM " + currRoom);
 
   const joinRoom = () => {
+    console.log("testtttttttt");
     fetch(`http://localhost:5000/api/room/${currRoom}/completed`).then((res) => {
       //Go to room if it exists, otherwise set error to show it does not exist
       console.log("here we go")
@@ -70,7 +71,7 @@ const HostedRooms = () => {
         //TODO: Set appropriate error, may not just be 404
         console.log("Room Not Found");
       }
-    });
+    }).catch((error) => console.log(error));
   };
 
 

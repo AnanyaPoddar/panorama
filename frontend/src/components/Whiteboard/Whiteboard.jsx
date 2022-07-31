@@ -59,7 +59,7 @@ function SimpleDialog(props) {
 const Whiteboard = ({ roomId }) => {
   const { onMount, ...events } = useMultiplayerState(roomId);
   let [wbMount, setwbMount] = useState(null);
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const [template, setTemplate] = React.useState(null)
 
   const handleClickOpen = () => {

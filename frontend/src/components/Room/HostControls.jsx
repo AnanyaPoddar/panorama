@@ -18,9 +18,17 @@ const HostControls = ({ id }) => {
 
   //only available for the host, when they wish to end the call they must confirm
   const [openConfirmation, setOpenConfirmation] = useState(false);
+  const [participants, setParticipants] = useState("");
 
   //TODO: Change API call to not pass in identity through body
   const endCall = () => {
+    /*fetch(`http://localhost:5000/api/room/${id}/participants`)
+    .then((res) => res.json())
+    .then((json) => {
+      console.log(json);
+      setParticipants(json);
+    });*/
+
     fetch(`http://localhost:5000/api/room/${id}`, {
       method: "DELETE",
       headers: {
@@ -36,18 +44,15 @@ const HostControls = ({ id }) => {
   };
 
   const sendSummary = () => {
-    fetch(`http://localhost:5000/api/room/${id}/participants`)
-      .then((res) => res.json())
-      .then((json) => {
-        const worker = new WorkerBuilder(Worker);
+    
+        /*const worker = new WorkerBuilder(Worker);
         const emails = json.emails;
         const names = json.names;
         worker.postMessage({ emails, names });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {
           worker.terminate();
-        };
-      });
+        };*/
   };
 
   return (
