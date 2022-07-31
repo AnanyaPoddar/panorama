@@ -125,20 +125,27 @@ app.get("/api/room/:roomId/completed", (req, res) => {
     })
     .then(rooms => {
       rooms.forEach(r => {
+        console.log(r.uniqueName);
+        console.log(req.params.roomId);
         if (r.uniqueName === req.params.roomId) {
           console.log(r.sid);
           client.video.v1
             .rooms(r.sid)
             .fetch()
-            .then(room => res.status(200).send(JSON.stringify({ room: room })))
+            .then(room => {
+              console.log(room);
+              res.status(200).send(JSON.stringify({ room: room }));
+            })
             .catch(() => {
-              res.status(404).send(JSON.stringify({ err: "Room not found" }));
+              return res
+                .status(404)
+                .send(JSON.stringify({ err: "Room not found" }));
             });
         }
       });
     })
     .catch(() => {
-      res.status(500).send(JSON.stringify({ err: "Error" }));
+      return res.status(500).send(JSON.stringify({ err: "Error" }));
     });
 });
 
@@ -163,6 +170,7 @@ app.get("/api/room/:roomId/participants", (req, res) => {
       res.status(200).send(JSON.stringify({ data: participants }));
     })
     .catch(err => {
+      console.log(err);
       res.status(500).send(JSON.stringify({ err: err }));
     });
 });

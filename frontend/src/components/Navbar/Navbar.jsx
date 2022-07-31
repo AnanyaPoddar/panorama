@@ -58,7 +58,7 @@ const Navbar = () => {
           <div className="nav-left">
             {/* Redirects to lobby if logged in, otherwise to the homepage */}
             {loggedIn ? (
-              <h2 onClick={() => navigate("/lobby")}>Panorama</h2>
+              <h2>Panorama</h2>
             ) : (
               <h2 onClick={() => navigate("/")}>Panorama</h2>
             )}

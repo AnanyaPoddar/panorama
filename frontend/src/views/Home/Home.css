@@ -12,13 +12,14 @@
 
 video {
   width: 100%;
+  border-width: 0px;
+  height: auto;
+  object-fit: fill;
+  
 }
 #bgvid {
-  width:100%;
-  height: 100%;
   position: fixed;
-  bottom: 0px;
-  right: 0px;
+  left: 0px;
   outline: none;
 }
 
