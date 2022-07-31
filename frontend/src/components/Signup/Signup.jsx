@@ -170,7 +170,7 @@ function Signup() {
           </form>
         </div>
         ) : (
-          <div>
+          <div className = "inner">
             <div className = "page-heading">Let's get to know you better. </div>
             <form onSubmit={handleSubmit} className="form">
               {errorMessage && (
@@ -203,12 +203,18 @@ function Signup() {
                   onChange={e => setDob(e.target.value)}
                 />
               <br />
-              <Button variant="outlined" onClick={backPage}>
-                Back
-              </Button>
-              <Button variant="outlined" type="submit">
-                Sign up
-              </Button>
+              <div className="btns">
+                <div className="btn">
+                  <Button variant="outlined" onClick={backPage}>
+                  Back
+                </Button>
+                </div>
+                <div className="btn">
+                <Button variant="outlined" className="btn" type="submit">
+                  Sign up
+                </Button>
+                </div>
+              </div>
             </form>
           </div>
         )

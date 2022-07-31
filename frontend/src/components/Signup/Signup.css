@@ -1,7 +1,8 @@
 .inner {
   text-align: center;
     display: flex;
-    padding: 10%;
+    padding-right: 10%;
+    padding-left: 10%;
     font-size: 30px;
     font-family: 'Avenir', 'Franklin Gothic', Arial, sans-serif;
     flex-direction: column;
@@ -48,7 +49,6 @@
   width: 350px;
   padding-bottom: 20px;
 }
-
 
 @font-face {
   font-family: Avenir;

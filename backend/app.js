@@ -261,7 +261,6 @@ app.post("/api/room", (req, res) => {
     if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
     users.findOne({ email: identity }, function (err, user) {
       if (err) return res.status(500).send(JSON.stringify({ err: err }));
-    users.findOne({ username: identity }, function (err, user) {
       createdRoom.host = identity;
       createdRoom.save();
     });
@@ -320,7 +319,7 @@ app.post("/api/users", function (req, res, next) {
             isVerified: false
           },
           function (err2, userCreated) {
-            if (err2) return res.status(500).end(err2);
+            if (err2) return res.status(500).json({err: err2});
             req.session.user = userCreated.email;
             
             token.create({user: userCreated._id, token: crypto.randomBytes(32).toString("hex")}, function (err, token) {

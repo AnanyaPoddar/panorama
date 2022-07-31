@@ -49,7 +49,7 @@ const Navbar = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AppBar position="sticky" id="appbar">
+      <AppBar position="sticky" id="appbar" >
         <Toolbar id="navbar">
           <div className="nav-left">
             {/* Redirects to lobby if logged in, otherwise to the homepage */}

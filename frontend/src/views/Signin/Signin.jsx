@@ -6,6 +6,7 @@ import { AuthContext } from "../../context/AuthProvider";
 import { ToggleButtonGroup, ToggleButton } from "@mui/material";
 import Signup from "../../components/Signup/Signup";
 import Login from "../../components/Login/Login";
+import "./Signin.css"
 
 const Signin = () => {
   const [signinType, setSigninType] = useState("signup");
@@ -41,7 +42,7 @@ const Signin = () => {
 
 
   return (
-    <div className="lobby page">
+    <div className="page" id="signin">
       {signinType === "signup" ? <Signup /> : <Login />}
 
       {signinType === "signup" 
