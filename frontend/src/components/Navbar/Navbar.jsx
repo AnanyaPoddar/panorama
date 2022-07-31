@@ -4,7 +4,7 @@ import {
   Toolbar,
   Button,
   ThemeProvider,
-  createTheme,
+  createTheme
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
@@ -27,12 +27,16 @@ const Navbar = () => {
     if (user) {
       fetch(`http://localhost:5000/api/logout`, {
         method: "GET",
+        credentials: "include",
+        headers: {
+          "Access-Control-Allow-Credentials": true
+        }
       })
-        .then((response) => {
+        .then(response => {
           if (response.status === 200) setUser(null);
           navigate("/");
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Error:", error);
         });
     }
@@ -42,14 +46,14 @@ const Navbar = () => {
     palette: {
       mode: "dark",
       primary: {
-        main: "#1976d2",
-      },
-    },
+        main: "#1976d2"
+      }
+    }
   });
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AppBar position="sticky" id="appbar" >
+      <AppBar position="sticky" id="appbar">
         <Toolbar id="navbar">
           <div className="nav-left">
             {/* Redirects to lobby if logged in, otherwise to the homepage */}
