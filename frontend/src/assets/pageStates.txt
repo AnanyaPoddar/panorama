@@ -1,0 +1,16 @@
+
+    "page": {
+      "id": "page",
+      "selectedIds": [
+        "500561e0-5e68-4cb1-0ee4-70cee1169e05"
+      ],
+      "camera": {
+        "point": [
+          6481.71,
+          2369.68
+        ],
+        "zoom": 0.20585416284374228
+      },
+      "editingId": null
+    }
+  

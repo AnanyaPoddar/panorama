@@ -18,3 +18,18 @@
   position: absolute;
   right: 30px; bottom: 20px;
 }
+
+.cards {
+  padding: 20px;
+  display:flex;
+  flex-direction: row;
+}
+
+.card {
+  margin: 10px;
+  margin-top:0px;
+}
+
+.card:hover {
+  box-shadow: 5px 5px 5px #b0b0b0;
+}

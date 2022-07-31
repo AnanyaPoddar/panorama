@@ -14,7 +14,7 @@ const Signin = () => {
   const navigate = useNavigate();
 
   // check if the user has authenticated through linkedin
-  useEffect(() => {
+ /* useEffect(() => {
     if (!user ) {
       fetch(`http://localhost:5000/api/linkedin/auth/success`, {
         method: "GET",
@@ -37,7 +37,7 @@ const Signin = () => {
           console.error("Error:", error);
         });
     }
-  }, []);
+  }, []);*/
 
 
   return (

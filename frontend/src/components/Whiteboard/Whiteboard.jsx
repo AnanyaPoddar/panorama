@@ -1,22 +1,24 @@
 import * as React from 'react';
-import { Tldraw } from "@tldraw/tldraw";
+import { Tldraw, TldrawApp } from "@tldraw/tldraw";
 import { useMultiplayerState } from "./useMultiplayerState";
 import { useEffect, useState } from "react";
 import Fab from '@mui/material/Fab';
 import "./Whiteboard.css";
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
-
-const templates = ['Mindmap', 'Kanban'];
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import mindmap from "../../assets/mindmap.png"
+import kanban from "../../assets/kanban.png"
+import { mindmapTemplate } from "../../assets/mindmap.jsx";
+import { kanbanTemplate } from "../../assets/kanban.jsx";
 
 function SimpleDialog(props) {
-  const { onClose, selectedValue, open } = props;
+  const { onClose, template, open } = props;
 
   const handleClose = () => {
-    onClose(selectedValue);
+    onClose(template);
   };
 
   const handleListItemClick = (value) => {
@@ -25,21 +27,40 @@ function SimpleDialog(props) {
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Select Template</DialogTitle>
-        {templates.map((email) => (
-          <ListItem button onClick={() => handleListItemClick(email)} key={email}>
-            <ListItemText primary={email} />
-          </ListItem>
-        ))}
+      <div className="cards">
+        <Card className="card" sx={{ maxWidth: 345 }} onClick={() => handleListItemClick("mindmap")}>
+          <CardMedia
+            component="img"
+            height="140"
+            width="140"
+            image={mindmap}
+            alt="mindmap"
+          />
+          <CardContent>
+            Mindmap
+          </CardContent>
+        </Card>
+        <Card className="card" sx={{ maxWidth: 345 }} onClick={() => handleListItemClick("kanban")}>
+          <CardMedia
+            component="img"
+            height="140"
+            width="140"
+            image={kanban}
+            alt="kanban"
+          />
+          <CardContent>
+            Kanban Board
+          </CardContent>
+        </Card>
+      </div>
     </Dialog>
   );
 }
-
-
 const Whiteboard = ({ roomId }) => {
   const { onMount, ...events } = useMultiplayerState(roomId);
   let [wbMount, setwbMount] = useState(null);
   const [open, setOpen] = React.useState(false);
-  const [selectedValue, setSelectedValue] = React.useState(null);
+  const [template, setTemplate] = React.useState(null)
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -47,19 +68,32 @@ const Whiteboard = ({ roomId }) => {
 
   const handleClose = (value) => {
     setOpen(false);
-    setSelectedValue(value);
+    if (value=="mindmap") {
+      setTemplate(mindmapTemplate);
+    }
+    else if (value=="kanban") {
+      setTemplate(kanbanTemplate);
+    }
   };
 
   useEffect(() => {
     if (wbMount == null) setwbMount({ onMount });
-    console.log(wbMount);
   });
+
+  console.log(template);
+  const mydoc = template;
+  if (mydoc) {
+    mydoc.id=roomId;
+  }
+
+  console.log(mydoc);
 
   return (
     <div>
       {wbMount != null ? (
         <div>
-          <Tldraw
+          {template==null? (
+            <Tldraw
             showMenu={false}
             showMultiplayerMenu={false}
             showPages={false}
@@ -67,6 +101,17 @@ const Whiteboard = ({ roomId }) => {
             id = {roomId}
             {...events}
           />
+          ) : (
+            <Tldraw
+            document={mydoc}
+            showMenu={false}
+            showMultiplayerMenu={false}
+            showPages={false}
+            onMount={onMount}
+            {...events}
+          />
+          )} 
+          
           <div className="options">
             <Fab variant="extended" onClick={handleClickOpen}>
               Templates
@@ -74,7 +119,7 @@ const Whiteboard = ({ roomId }) => {
           </div>
           <div className="dialog">
             <SimpleDialog
-              selectedValue={selectedValue}
+              template={template}
               open={open}
               onClose={handleClose}
             />
@@ -85,6 +130,7 @@ const Whiteboard = ({ roomId }) => {
       )}
     </div>
   );
+  
 };
 
 export default Whiteboard;

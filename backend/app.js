@@ -143,10 +143,10 @@ app.get("/api/room/:roomId/completed", (req, res) => {
 //Get the host of an existing room
 app.get("/api/room/:roomId/host", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (err) return res.status(500).send(err);
     if (room) {
-      res.status(200).send(JSON.stringify({ host: room.host }));
-    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
-    if (err) res.status(500).send(err);
+      return res.status(200).send(JSON.stringify({ host: room.host }));
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
 });
 
@@ -159,13 +159,14 @@ app.get("/api/room/:roomId/participants", (req, res) => {
     .fetch()
     .then((participants) => {
       console.log(participants);
-      res.status(200).send(JSON.stringify({ data: participants }));
+      return res.status(200).send(JSON.stringify({ data: participants }));
     });
 });
 
 //end room, all connected participants will be disconnected; this is restricted to host of the room
 app.delete("/api/room/:roomId", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (err) return res.status(500).send(err);
     if (room) {
       //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
       if (room.host !== req.body.identity)
@@ -181,8 +182,7 @@ app.delete("/api/room/:roomId", (req, res) => {
           );
         //TODO: Handle case of errors
       }
-    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
-    if (err) res.status(500).send(err);
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
 });
 
@@ -194,7 +194,7 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
     if (room) {
       //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
       if (room.host !== req.body.identity)
-        res.status(403).send(
+        return res.status(403).send(
           JSON.stringify({
             err: "Only hosts can remove a participant from a room",
           })
@@ -207,7 +207,7 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
           .then((p) => {
             console.log("DISCONNECTED " + participant);
 
-            res.status(200).send(
+            return res.status(200).send(
               JSON.stringify({
                 msg:
                   "Removed participant " + participant + " with sid " + p.sid,
@@ -216,7 +216,7 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
           });
         //TODO: Handle case of errors
       }
-    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
     if (err) res.status(500).send(err);
   });
 });
@@ -235,7 +235,7 @@ app.post("/api/room/:roomId/token", (req, res) => {
         if (!user) return res.status(401).end("access denied");
         data.save();
       });
-      res.send(JSON.stringify({ token: token, id: roomId }));
+      return res.send(JSON.stringify({ token: token, id: roomId }));
     }
   });
 });
@@ -257,21 +257,21 @@ app.post("/api/room", (req, res) => {
       createdRoom.save();
     });
   });
-  res.send(JSON.stringify({ id: roomId }));
+  return res.send(JSON.stringify({ id: roomId }));
 });
 
 //Return all the rooms that a user is host of
 app.post("/api/room/hosted", (req, res) => {
   const host = req.body.identity;
   rooms.find({host: host}, function (err, hostedRooms) {
-    if (err) res.status(500).send(err);
+    if (err) return res.status(500).send(err);
     const roomnames = [];
     const roomids = [];
     hostedRooms.forEach(r => {
       roomnames.push(r.name);
       roomids.push(r.id)
     });
-    res.status(200).json({names: roomnames, ids: roomids});
+    return res.status(200).json({names: roomnames, ids: roomids});
   });
 });
 
@@ -341,14 +341,16 @@ app.post("/api/login", (req, res) => {
       let hash = user.password;
       console.log(user);
       bcrypt.compare(password, hash, function (err, result) {
-        if (!result) return res.status(401).json({error: "access denied"});
+        if (!result) {
+          return res.status(401).json({error: "access denied"});
+        }
+        
+        console.log("The user is " + user);
+        req.session.user = user.email;
+        return res.status(200).json(user);
       });
-      console.log("The user is " + user);
-      req.session.user = user.email;
-      return res.status(200).json(user);
     }
   );
-  // return res.json(req.session.user);
 });
 
 // get room participants
@@ -449,7 +451,7 @@ app.get("/api/linkedin/auth/success", (req, res) => {
 
 // redirect for authentication failure
 app.get("/api/linkedin/auth/failure", (req, res) => {
-  res.send("Failed to authenticate..");
+  return res.send("Failed to authenticate..");
 });
 
 // clear out the session
@@ -488,6 +490,6 @@ app.post("/api/text-mail", function (req, res, next) {
     if (error) {
       return console.log(error);
     }
-    res.status(200).send({ message: "Mail send", message_id: info.messageId });
+    return res.status(200).send({ message: "Mail send", message_id: info.messageId });
   });
 });
