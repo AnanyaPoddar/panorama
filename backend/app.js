@@ -515,8 +515,8 @@ app.get("/api/:userId/verify/:token", (req, res) => {
     });
     token.deleteOne({token: req.params.token}, function (err, tokfound) {
       if (!tokfound) return res.status(404).send({ error: "Invalid link" });
-      return res.status(200).send({ message: "Email verified successfully" });
     });
+    return res.status(200).send({ message: "Email verified successfully" });
   });
 });
 
@@ -539,7 +539,7 @@ app.post("/api/verification-mail", (req, res) => {
         if (error) {
           return res.status(500).json({error: error});
         }
-      return res.status(200).json({message: "Email sent"});
+      else return res.status(200).json({message: "Email sent"});
       });
     });
   });
