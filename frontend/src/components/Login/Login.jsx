@@ -2,22 +2,35 @@ import { Button, TextField } from "@mui/material";
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
-import "../Form.css";
+import "../../components/Form.css";
+import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
+import validator from "validator";
+import "../Signup/Signup.css";
 
 function Login() {
   const { user, setUser } = useContext(AuthContext);
+  const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate();
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setSubmit] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
   const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
-    const creds = { username: username, password: pass };
+
+    if (!(validator.isEmail(email))) {
+      setErrorMessage("Enter a valid email");
+      return;
+    }
+    if (pass==="") {
+      setErrorMessage("Missing password");
+      return;
+    }
+    const creds = { identity: email.toLowerCase().trim(), password: pass };
 
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/login`, {
@@ -25,12 +38,21 @@ function Login() {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(creds),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status==401) {
+          setErrorMessage("Invalid credentials");
+          return;
+        }
+        return response.json();
+      })
       //TODO: Possibly check status is ok before rendering
-      .then((json) => {
-        setUser({ id: json._id, name: json.username });
+      .then(json => {
+        console.log("Done");
+        console.log(json)
+        setUser({ email: json.email });
         navigate("/lobby");
       })
       .catch((error) => {
@@ -38,18 +60,18 @@ function Login() {
       });
   };
 
-  const renderErrorMessage = (message) => (
-    <div className="error">{message}</div>
-  );
-
   return (
-    <div>
+    <div className= "inner">
+      <div className = "page-heading"> Welcome back! Log in to get started. </div>
       <form onSubmit={handleSubmit} className="form">
+        {errorMessage && (
+                <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
+        )}
         <TextField
           variant="standard"
-          placeholder="Enter username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <br />
         <TextField

@@ -29,6 +29,8 @@ import "./Room.css";
 const Room = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
+  console.log("user is; ");
+  console.log(user);
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
@@ -66,7 +68,7 @@ const Room = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        identity: user.name,
+        identity: user.email,
       }),
     })
       .then((res) => {
@@ -136,7 +138,7 @@ const Room = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        identity: user.name,
+        identity: user.email,
       }),
     })
       .then((res) => {
@@ -210,7 +212,7 @@ const Room = () => {
                 </p>
                 <div className="participant-list">
                   {/* Only allow hosts to kick participants out */}
-                  {host !== "" && host === user.name
+                  {host !== "" && host === user.email
                     ? remoteParticipants.map((participant) => (
                         <div className="participant-in-list">
                           <p>{participant.identity}</p>
@@ -250,7 +252,7 @@ const Room = () => {
                 setVideoOn={changeVideoOn}
                 setRoom={changeRoom}
               />
-              {host !== "" && host === user.name && <HostControls id={id} />}
+              {host !== "" && host === user.email && <HostControls id={id} />}
             </div>
           </Drawer>
           <Whiteboard roomId={id} />

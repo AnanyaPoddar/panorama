@@ -33,15 +33,15 @@ app.use(
 
 //middleware
 const isAuthenticated = function (req, res, next) {
-  /*if (!req.session.username)
+  /*if (!req.session.user)
     return res.status(401).json({ errors: "Access Denied" });*/
   next();
 };
 
 //Get the current user
 app.get("/api/user", function (req, res) {
-  if (req.session.username) {
-    return res.status(200).json(req.session.username);
+  if (req.session.user) {
+    return res.status(200).json(req.session.user);
   } else {
     return res.status(200).json(null);
   }
@@ -77,7 +77,7 @@ database.once("connected", () => {
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: true,
   })
@@ -106,6 +106,7 @@ app.get("/api/user", function (req, res) {
 
 //Check if room exists
 app.get("/api/room/:roomId", (req, res) => {
+  console.log(req.params.roomId);
   client.video.v1
     .rooms(req.params.roomId)
     .fetch()
@@ -113,6 +114,30 @@ app.get("/api/room/:roomId", (req, res) => {
     .catch(() => {
       res.status(404).send(JSON.stringify({ err: "Room not found" }));
     });
+});
+
+// check completed rooms
+app.get("/api/room/:roomId/completed", (req, res) => {
+  console.log("hereeee")
+  client.video.v1.rooms
+          .list({
+              status: 'completed'
+            })
+          .then(rooms => {
+            rooms.forEach(r => {
+            if (r.uniqueName===req.params.roomId) {
+              console.log(r.sid);
+              client.video.v1.rooms(r.sid)
+              .fetch()
+              .then((room) => res.status(200).send(JSON.stringify({ room: room })))
+              .catch(() => {
+                res.status(404).send(JSON.stringify({ err: "Room not found" }));
+              });
+            }
+            });
+          }).catch( () => {
+            res.status(500).send(JSON.stringify({ err: "Error" }));
+          });
 });
 
 //Get the host of an existing room
@@ -200,31 +225,33 @@ app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
 app.post("/api/room/:roomId/token", (req, res) => {
   const roomId = req.params.roomId;
   const identity = req.body.identity;
+  console.log("the identity is " + identity);
   const token = getVideoToken(identity, roomId);
 
   rooms.findOne({ id: roomId }, function (err3, data) {
     if (data) {
-      users.findOne({ username: identity }, function (err, user) {
-        /*data.participants.push(identity);
-        data.participantEmails.push(user.email);*/
+      users.findOne({ email: identity }, function (err, user) {
+        if (err) return res.status(500).end(err);
+        if (!user) return res.status(401).end("access denied");
         data.save();
       });
+      res.send(JSON.stringify({ token: token, id: roomId }));
     }
   });
-  res.send(JSON.stringify({ token: token, id: roomId }));
 });
 
 //Returns unique identifier for room, and identity associated with the created room is the host
 app.post("/api/room", (req, res) => {
   const roomId = uuid.v4();
   const identity = req.body.identity;
+  console.log(identity);
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
   rooms.create({ id: roomId, name: req.body.roomName}, function (err2, createdRoom) {
     console.log(err2);
     if (err2) return res.status(500).end(err2);
     users.findOne({ email: identity }, function (err, user) {
-      createdRoom.participants.push(user.firstname + " " + user.lastname);
-      createdRoom.participantEmails.push(identity);
+      if (err) return res.status(500).end(err);
+      if (!user) return res.status(401).end("access denied");
       //Added idea of a host
       createdRoom.host = identity;
       createdRoom.save();
@@ -239,10 +266,12 @@ app.post("/api/room/hosted", (req, res) => {
   rooms.find({host: host}, function (err, hostedRooms) {
     if (err) res.status(500).send(err);
     const roomnames = [];
+    const roomids = [];
     hostedRooms.forEach(r => {
       roomnames.push(r.name);
+      roomids.push(r.id)
     });
-    res.status(200).json({rooms: roomnames});
+    res.status(200).json({names: roomnames, ids: roomids});
   });
 });
 
@@ -250,21 +279,21 @@ app.post("/api/room/hosted", (req, res) => {
 // sign up route
 app.post("/api/users", function (req, res, next) {
   // check for missing info
-  if (!("username" in req.body))
-    return res.status(400).end("username is missing");
+  if (!("identity" in req.body))
+    return res.status(422).json({re: "email", message: "email is missing"});
   if (!("password" in req.body))
-    return res.status(400).end("password is missing"); // to do: all errors in .json
+    return res.status(422).json({re: "password", message: "password is missing"}); // to do: all errors in .json
 
-  let uname = req.body.username;
   let password = req.body.password;
-  let email = req.body.email;
+  let email = req.body.identity;
 
+  // check to see if email is already in use
   users.findOne(
-    { isLinkedinUser: false, username: uname },
+    { isLinkedinUser: false, email: email },
     function (err3, user) {
-      if (err3) return res.status(500).end(err3);
+      if (err3) return res.status(500).json({re: "server", message: err3});
       if (user) {
-        return res.status(409).end("username " + uname + " already exists"); // TO DO: check for unique email too
+        return res.status(409).json({re: "email", message: "an account with this email already exists"});
       }
       // hash the password
       const saltRounds = 10;
@@ -273,14 +302,18 @@ app.post("/api/users", function (req, res, next) {
         users.create(
           {
             isLinkedinUser: false,
-            username: uname,
             password: hash,
             email: email,
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            dob: req.body.dob,
+            dp: null,
+            isVerified: false
           },
           function (err2, userCreated) {
             if (err2) return res.status(500).end(err2);
-            req.session.user = userCreated;
-            return res.json(uname);
+            req.session.user = userCreated.email;
+            return res.json(email);
           }
         );
       });
@@ -290,43 +323,45 @@ app.post("/api/users", function (req, res, next) {
 
 // Login endpoint
 app.post("/api/login", (req, res) => {
-  if (!("username" in req.body))
-    return res.status(400).end("username is missing");
+  if (!("identity" in req.body))
+    return res.status(422).json({re: "email", message: "email is missing"});
   if (!("password" in req.body))
-    return res.status(400).end("password is missing");
+    return res.status(422).json({re: "password", message: "password is missing"});
 
-  let uname = req.body.username;
+  let identity = req.body.identity;
   let password = req.body.password;
+  console.log(identity, password);
 
   // retrieve user from the database
   users.findOne(
-    { isLinkedinUser: false, username: uname },
+    { isLinkedinUser: false, email: identity },
     function (err, user) {
-      if (err) return res.status(500).end(err);
-      if (!user) return res.status(401).end("access denied");
+      if (err) return res.status(500).json({error: err});
+      if (!user) return res.status(401).json({error: "access denied"});
       let hash = user.password;
+      console.log(user);
       bcrypt.compare(password, hash, function (err, result) {
-        if (!result) return res.status(401).end("access denied");
-        req.session.user = user;
-        return res.status(200).json(user);
+        if (!result) return res.status(401).json({error: "access denied"});
       });
+      console.log("The user is " + user);
+      req.session.user = user.email;
+      return res.status(200).json(user);
     }
   );
   // return res.json(req.session.user);
 });
 
 // get room participants
-app.get("/api/room/:roomId/participants", (req, res) => {
+/*app.get("/api/room/:roomId/participants", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, data) {
     if (err) return res.status(500).end(err);
     return res.send(
       JSON.stringify({
-        names: data.participants,
-        emails: data.participantEmails,
+        
       })
     );
   });
-});
+});*/
 
 // initialize linkedin strategy
 passport.use(
@@ -352,9 +387,8 @@ passport.use(
                   isLinkedinUser: true,
                   linkedinId: profile.id,
                   email: profile.emails[0].value,
-                  username: (
-                    profile.name.givenName + profile.name.familyName
-                  ).toLowerCase(),
+                  firstname: profile.name.givenName,
+                  lastname: profile.name.familyName
                 },
                 function (err2, userCreated) {
                   if (err2) return res.status(500).end(err2);

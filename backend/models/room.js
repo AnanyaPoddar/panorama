@@ -5,17 +5,9 @@ const roomSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
-  participants: {
-    default: [],
-    type: Array,
-  },
-  participantEmails: {
-    default: [],
-    type: Array,
-  },
   //added idea of host
   host: {
-    required: true,
+    required: false,
     type: String
   }, 
   name: {

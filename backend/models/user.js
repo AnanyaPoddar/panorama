@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  username: {
-    required: true,
-    type: String
-  },
   password: {
     required: false,
     type: String
@@ -20,6 +16,26 @@ const userSchema = new mongoose.Schema({
   linkedinId: {
     required: false,
     type: String
+  },
+  firstname: {
+    required: true,
+    type: String
+  },
+  lastname: {
+    required: true,
+    type: String
+  },
+  dob: {
+    required: false,
+    type: Date
+  },
+  dp: {
+    required: false,
+    type: String
+  },
+  isVerified: {
+    required: false,
+    type: Boolean
   }
 });
 

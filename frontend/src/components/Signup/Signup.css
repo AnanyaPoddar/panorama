@@ -1,0 +1,48 @@
+.inner {
+  text-align: center;
+    display: flex;
+    padding: 10%;
+    font-size: 30px;
+    font-family: 'Avenir', 'Franklin Gothic', Arial, sans-serif;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.error {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  color: #e04f5f;
+  padding-bottom: 10px;
+}
+
+.page-heading {
+  font-size: 40px;
+}
+
+.link {
+  text-decoration: none;
+  font-weight: bold;
+  color: #3caba5;
+  cursor: pointer;
+}
+
+.errorIcon {
+  height: 17px;
+  width: 17px;
+  flex: 1;
+  padding-right: 5px;
+}
+.pass-desc {
+  font-size: 15px;
+  width: 350px;
+  padding-bottom: 20px;
+}
+
+
+@font-face {
+  font-family: Avenir;
+  src: url(../../assets/fonts/AvenirLTStd-Roman.otf);
+} 

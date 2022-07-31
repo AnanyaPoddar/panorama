@@ -1,36 +1,87 @@
 import React, { useEffect, useState } from "react";
 import { Button, TextField } from "@mui/material";
-import "../Form.css";
+import validator from 'validator';
+import "../../components/Form.css";
+import "./Signup.css";
+import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
 
 function Signup() {
-  const [errors, setErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitted, setSubmit] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const [user, setUser] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [pass2, setPass2] = useState("");
+  const [firstname, setFname] = useState("");
+  const [lastname, setLname] = useState("");
+  const [dob, setDob] = useState("");
 
-  const username = React.useRef(null);
   const password2 = React.useRef(null);
   const password1 = React.useRef(null);
   const emailfield = React.useRef(null);
+  const firstfield = React.useRef(null);
+  const lastfield = React.useRef(null);
+  const dobfield = React.useRef(null);
+
+
+  const nextPage = e => {
+    //Prevent page reload
+    e.preventDefault();
+
+    // check that a properly formatted email is given
+    if (!(validator.isEmail(email))) {
+      setErrorMessage("Enter a valid email");
+      return;
+    }
+
+    // check that password strength is good
+    if (!(validator.isStrongPassword(pass))) {
+      setErrorMessage("Password too weak");
+      return;
+    }
+
+    // check that passwords match
+    if (pass2 !== pass) {
+      setErrorMessage("Passwords do not match");
+      return;
+    }
+    setErrorMessage(null);
+    setPage(2);
+  }
+
+  const backPage = (e) => {
+    setPage(1);
+  }
+
 
   const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
-    username.current.value = "";
-    password1.current.value = "";
-    password2.current.value = "";
-    emailfield.current.value = "";
 
-    if (pass2 !== pass) {
-      console.log("pass does not match");
+    // check firstname length
+    if (firstname.length < 1) {
+      setErrorMessage("Enter your first name");
       return;
     }
-    const creds = { username: user, email: email, password: pass };
 
+    if (lastname.length < 1) {
+      setErrorMessage("Enter your last name");
+      return;
+    }
+
+    // check dob format
+    if (!(validator.isDate(dob))) {
+      setErrorMessage("Enter a valid date");
+      return;
+    }
+
+    setErrorMessage(null);
+
+
+    const creds = { identity: email.toLowerCase().trim(), password: pass.trim(), firstname: firstname.trim(), lastname: lastname.trim(), dob: dob};
+    console.log(creds);
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/users`, {
       method: "POST",
@@ -41,70 +92,116 @@ function Signup() {
     })
       .then((res) => {
         if (res.status != 200) {
-          let error = "";
-          if (res.status === 409) error = "username already taken";
-          if (res.status === 401) error = "access denied";
-          console.log(error);
-        } else return res.json();
-      })
-      .then((data) => {
-        console.log("Success:", data);
-        alert("Successfully signed up. You may now log in.");
+          if (res.status === 409 ) {
+            setErrorMessage("This email has already been used");
+            setPage(1);
+          }
+          if (res.status===422) {
+            setErrorMessage("Something is missing")
+          }
+        } else {
+          return res.json();
+        };
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
 
-  const renderErrorMessage = (message) => (
-    <div className="error">{message}</div>
-  );
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="form">
-        <TextField
-          variant="standard"
-          placeholder="Enter username"
-          inputRef={username}
-          value={user}
-          onChange={(e) => setUser(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          placeholder="Enter Email"
-          inputRef={emailfield}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          type="password"
-          placeholder="Enter password"
-          inputRef={password1}
-          value={pass}
-          onChange={(e) => setPass(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          type="password"
-          inputRef={password2}
-          placeholder="Confirm password"
-          value={pass2}
-          onChange={(e) => setPass2(e.target.value)}
-        />
-        <br />
-        <Button variant="outlined" type="submit">
-          Sign Up
-        </Button>
-        <br />
-        <a href="http://localhost:5000/api/linkedin/auth">
-          <img className="linkedinButton" src={linkedinButton} />
-        </a>
-      </form>
+      { page==1 ? ( 
+        <div className="inner">
+          <div className = "page-heading"> Get started in just a few simple steps. </div>
+          <form onSubmit={nextPage} className="form">
+            {errorMessage && (
+              <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
+            )}
+            <br />
+            <TextField
+              variant="standard"
+              placeholder="Enter email"
+              inputRef={emailfield}
+              value={email}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <br />
+            <TextField
+              variant="standard"
+              type="password"
+              placeholder="Enter password"
+              inputRef={password1}
+              value={pass}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              onChange={e => setPass(e.target.value)}
+            />
+            <br />
+            <TextField
+              variant="standard"
+              type="password"
+              inputRef={password2}
+              placeholder="Confirm password"
+              value={pass2}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              onChange={e => setPass2(e.target.value)}
+            />
+            <br />
+            <div className="pass-desc">Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, one number, and one symbol.</div>
+            <Button variant="outlined" type="submit">
+              Next
+            </Button>
+            <br />
+            <a href="http://localhost:5000/api/linkedin/auth">
+              <img className="linkedinButton" src={linkedinButton} />
+            </a>
+          </form>
+        </div>
+        ) : (
+          <div>
+            <div className = "page-heading">Let's get to know you better. </div>
+            <form onSubmit={handleSubmit} className="form">
+              {errorMessage && (
+                <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
+              )}
+                <TextField
+                  variant="standard"
+                  placeholder="Enter your first name"
+                  inputRef={firstfield}
+                  value={firstname}
+                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  onChange={e => setFname(e.target.value)}
+                />
+                <br />
+                <TextField
+                  variant="standard"
+                  placeholder="Enter your last name"
+                  inputRef={lastfield}
+                  value={lastname}
+                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  onChange={e => setLname(e.target.value)}
+                />
+                <br />
+                <TextField
+                  variant="standard"
+                  placeholder="Date of birth (yyyy/mm/dd)"
+                  value={dob}
+                  inputRef={dobfield}
+                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  onChange={e => setDob(e.target.value)}
+                />
+              <br />
+              <Button variant="outlined" onClick={backPage}>
+                Back
+              </Button>
+              <Button variant="outlined" type="submit">
+                Sign up
+              </Button>
+            </form>
+          </div>
+        )
+      }
     </div>
   );
 }

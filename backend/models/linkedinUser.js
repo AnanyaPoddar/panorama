@@ -8,10 +8,6 @@ const linkedinUserSchema = new mongoose.Schema({
   email: {
     required: true,
     type: String
-  },
-  username: {
-    required: true,
-    type: String
   }
 });
 

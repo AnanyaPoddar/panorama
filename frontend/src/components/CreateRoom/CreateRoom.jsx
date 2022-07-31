@@ -26,7 +26,7 @@ const CreateRoom = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        identity: user.name,
+        identity: user.email,
         roomName: roomName
       }),
     })
@@ -51,6 +51,7 @@ const CreateRoom = () => {
       <TextField
           variant="standard"
           placeholder="Room name"
+          required
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
         />

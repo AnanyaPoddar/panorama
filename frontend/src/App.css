@@ -11,7 +11,7 @@
 
 body {
   background-color: #fafafc;
-  font-family: "Roboto", sans-serif;
+  font-family:"Roboto", sans-serif;
   letter-spacing: 1.7px;
   font-size: 14px;
   padding: 0;
@@ -26,3 +26,10 @@ body {
 .error {
   color: red;
 }
+
+
+
+@font-face {
+  font-family: Avenir;
+  src: url(assets/fonts/AvenirLTStd-Roman.otf);
+} 

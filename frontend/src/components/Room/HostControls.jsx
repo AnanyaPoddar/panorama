@@ -27,7 +27,7 @@ const HostControls = ({ id }) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        identity: user.name,
+        identity: user.email,
       }),
     }).then((res) => {
       //only send the summary if the call was successfully ended
