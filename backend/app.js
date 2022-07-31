@@ -56,6 +56,10 @@ const mongoose = require("mongoose");
 const mongoString = process.env.DATABASE_URL;
 const users = require("./models/user");
 const rooms = require("./models/room.js");
+const token = require("./models/token.js");
+const crypto = require('crypto');
+const user = require("./models/user");
+
 
 mongoose.connect(mongoString);
 const database = mongoose.connection;
@@ -313,7 +317,23 @@ app.post("/api/users", function (req, res, next) {
           function (err2, userCreated) {
             if (err2) return res.status(500).end(err2);
             req.session.user = userCreated.email;
-            return res.json(email);
+            
+            token.create({user: userCreated._id, token: crypto.randomBytes(32).toString("hex")}, function (err, token) {
+              const url = `http://localhost:3000/users/${userCreated._id}/verify/${token.token}`
+              const mailData = {
+                from: process.env.EMAIL,
+                to: userCreated.email,
+                subject: "Panorama verification",
+                html: `Hello ${userCreated.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`,
+              };
+            
+              transporter.sendMail(mailData, (error, info) => {
+                if (error) {
+                  return res.status(500).json({error: error});
+                }
+                return res.status(200).send({ message: "Mail sent", message_id: info.messageId });
+              });
+            });
           }
         );
       });
@@ -338,14 +358,13 @@ app.post("/api/login", (req, res) => {
     function (err, user) {
       if (err) return res.status(500).json({error: err});
       if (!user) return res.status(401).json({error: "access denied"});
+      if (!user.isVerified) return res.status(403).json({error: "email not verified"});
       let hash = user.password;
       console.log(user);
       bcrypt.compare(password, hash, function (err, result) {
         if (!result) {
           return res.status(401).json({error: "access denied"});
         }
-        
-        console.log("The user is " + user);
         req.session.user = user.email;
         return res.status(200).json(user);
       });
@@ -364,6 +383,8 @@ app.post("/api/login", (req, res) => {
     );
   });
 });*/
+
+// email verification
 
 // initialize linkedin strategy
 passport.use(
@@ -491,5 +512,20 @@ app.post("/api/text-mail", function (req, res, next) {
       return console.log(error);
     }
     return res.status(200).send({ message: "Mail send", message_id: info.messageId });
+  });
+});
+
+// verify email 
+app.get("/api/:userId/verify/:token", (req, res) => {
+  users.findOne({_id: req.params.userId}, function (err, found) {
+    if (err) return res.status(500).send({error: "server issue"});
+    if (!found) return res.status(400).send({ error: "Invalid link" });
+    token.findOne({user: found._id, token: req.params.token}, function (err2, tok) {
+      if (!token) return res.status(400).send({ error: "Invalid link" });
+      found.isVerified=true;
+      found.save();
+    });
+    token.remove();
+    return res.status(200).send({ message: "Email verified successfully" });
   });
 });

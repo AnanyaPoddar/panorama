@@ -8,7 +8,7 @@ import linkedinButton from "../../assets/linkedin-button.png";
 
 function Signup() {
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isSubmitted, setSubmit] = useState(false);
+  const [success, setSuccess] = useState(null);
   const [page, setPage] = useState(1);
 
   const [email, setEmail] = useState("");
@@ -100,6 +100,14 @@ function Signup() {
             setErrorMessage("Something is missing")
           }
         } else {
+          setSuccess("Success! Check your email for a verification link.");
+          setPage(1);
+          setEmail("");
+          setPass("");
+          setPass2("");
+          setFname("");
+          setLname("");
+          setDob("");
           return res.json();
         };
       })
@@ -117,6 +125,9 @@ function Signup() {
           <form onSubmit={nextPage} className="form">
             {errorMessage && (
               <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
+            )}
+            {success && (
+              <p className="success"> {success} </p>
             )}
             <br />
             <TextField

@@ -44,16 +44,18 @@ function Login() {
       .then((response) => {
         if (response.status==401) {
           setErrorMessage("Invalid credentials");
-          return;
-        }
+        } else if (response.status===403) {
+          setErrorMessage("Email not verified");
+        } else {
         return response.json();
+        }
       })
       //TODO: Possibly check status is ok before rendering
       .then(json => {
-        console.log("Done");
-        console.log(json)
-        setUser({ email: json.email });
-        navigate("/lobby");
+        if (json) {
+          setUser({ email: json.email });
+          navigate("/lobby");
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
