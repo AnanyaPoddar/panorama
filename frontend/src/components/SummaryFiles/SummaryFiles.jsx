@@ -113,9 +113,10 @@ function SummaryFiles() {
             <div className="btns">
               <div className="btn">
               <Button variant="outlined" className="btn" type="submit">
-                Send Summary                
+                Send Summary & Return to Lobby                
               </Button>
               </div>
+              <br />
               <div className="btn">
               <Button variant="outlined" className="btn" onClick={() => navigate(`/room/inactive/${id}`)}>
                 Back to Board                
