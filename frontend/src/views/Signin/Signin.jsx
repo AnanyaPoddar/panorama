@@ -9,7 +9,7 @@ import Login from "../../components/Login/Login";
 import "./Signin.css";
 
 const Signin = () => {
-  const [signinType, setSigninType] = useState("signup");
+  const [signinType, setSigninType] = useState("login");
 
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
