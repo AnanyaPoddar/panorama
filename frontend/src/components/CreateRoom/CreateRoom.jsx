@@ -39,7 +39,6 @@ const CreateRoom = () => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          identity: user.email,
           roomName: roomName,
           users: selected.concat([user.email])
         })

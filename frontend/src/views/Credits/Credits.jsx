@@ -4,7 +4,14 @@ const Credits = () => {
   return (
     <div className="page">
       <h1>Credits</h1>
-      <h2>HTML, CSS and Javascript code</h2>
+      <h2>Styling Libraries</h2>
+      <ul>
+        <li>
+          Material UI for buttons, navbar, themes, and many frontend components{" "}
+          <a href="https://mui.com/">MUI</a>
+        </li>
+      </ul>
+      <h2>CSS, Node & React Code</h2>
       <ul>
         <li>
           Frontend setup for twilio-video{" "}

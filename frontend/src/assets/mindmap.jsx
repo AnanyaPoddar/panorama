@@ -5,7 +5,7 @@ export const mindmapTemplate = {
     "pages": {
       "page": {
         "id": "page",
-        "name": "Page 1",
+        "name": "Panorama",
         "childIndex": 1,
         "shapes": {
           "42e95b7c-262c-4dc9-0116-895202f5b8fb": {

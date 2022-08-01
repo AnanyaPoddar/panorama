@@ -1,4 +1,5 @@
 const express = require("express");
+const { format } = require("util");
 const nodemailer = require("nodemailer");
 const http = require("http");
 const uuid = require("uuid");
@@ -12,6 +13,7 @@ const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const fetch = require("node-fetch");
+const Multer = require("multer");
 
 const port = 5000;
 
@@ -26,16 +28,29 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://" + process.env.HOST + ":3000",
-    methods: "GET,POST,PUT,DELETE",
+    origin: "http://localhost:3000",
+    methods: "GET,POST,PUT,DELETE, PATCH",
     credentials: true
   })
 );
 
+//Again required for CORS
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
+
 //middleware
 const isAuthenticated = function(req, res, next) {
-  /*if (!req.session.user)
-    return res.status(401).json({ errors: "Access Denied" });*/
+  if (!req.session.user) {
+    console.log("Access Denied");
+    return res.status(401).json({ errors: "Access Denied" });
+  }
   next();
 };
 
@@ -47,6 +62,27 @@ app.get("/api/user", function(req, res) {
     return res.status(200).json(null);
   }
 });
+
+// google cloud storage
+const { Storage } = require("@google-cloud/storage");
+
+// Instantiate a storage client
+const storage = new Storage({
+  projectId: "true-oasis-357701",
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+});
+
+// Multer is required to process file uploads and make them available via
+// req.files.
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // no larger than 5mib,
+  }
+});
+
+// A bucket is a container for objects (files).
+const bucket = storage.bucket("oasis-panorama");
 
 const server = http.createServer(app);
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -73,13 +109,6 @@ database.on("error", error => {
 
 database.once("connected", () => {
   console.log("Database Connected");
-});
-
-//Again required for CORS
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
 });
 
 app.use(
@@ -109,7 +138,7 @@ app.get("/api/user", function(req, res) {
 });
 
 //Check if room exists and is in progress
-app.get("/api/room/:roomId", (req, res) => {
+app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
   console.log(req.params.roomId);
   client.video.v1
     .rooms(req.params.roomId)
@@ -120,58 +149,54 @@ app.get("/api/room/:roomId", (req, res) => {
     });
 });
 
-// check completed rooms
-app.get("/api/room/:roomId/completed", (req, res) => {
-  console.log("hereeee");
+// check completed rooms for a room
+app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
+  let found = false;
   client.video.v1.rooms
     .list({
       status: "completed"
     })
     .then(rooms => {
       rooms.forEach(r => {
-        console.log(r.uniqueName);
-        console.log(req.params.roomId);
         if (r.uniqueName === req.params.roomId) {
-          console.log(r.sid);
+          found = true;
+          console.log(r);
           client.video.v1
             .rooms(r.sid)
             .fetch()
             .then(room => {
-              console.log(room);
-              res.status(200).send(JSON.stringify({ room: room }));
+              return res.status(200).send(JSON.stringify({ room: room }));
             })
             .catch(() => {
               return res
-                .status(404)
+                .status(500)
                 .send(JSON.stringify({ err: "Room not found" }));
             });
         }
       });
+
+      if (!found)
+        return res.status(404).send(JSON.stringify({ err: "Room not found" }));
+      return res.status(200).send(JSON.stringify({ message: "success" }));
     })
     .catch(() => {
       return res.status(500).send(JSON.stringify({ err: "Error" }));
     });
 });
 
-//Get the host of an existing room
-app.get("/api/room/:roomId/host", (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function(err, room) {
-    if (err) return res.status(500).send(err);
-    if (room) {
-      return res.status(200).send(JSON.stringify({ host: room.host }));
-    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
-  });
-});
-
 //Get all participants of a room (in-progress or completed)
-app.get("/api/room/:roomId/participants", (req, res) => {
+app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
   const roomId = req.params.roomId;
+
   client.video.v1
     .rooms(roomId)
-    .participants()
-    .fetch()
+    .participants.list({ status: "connected" })
     .then(participants => {
-      res.status(200).send(JSON.stringify({ data: participants }));
+      const sendBack = [];
+      participants.forEach(p => {
+        sendBack.push(p.identity);
+      });
+      return res.status(200).send(JSON.stringify({ data: sendBack }));
     })
     .catch(err => {
       console.log(err);
@@ -199,12 +224,11 @@ app.get("/api/room/:roomId/whitelist", (req, res) => {
 });
 
 //end room, all connected participants will be disconnected; this is restricted to host of the room
-app.delete("/api/room/:roomId", (req, res) => {
+app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function(err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
-      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
-      if (room.host !== req.body.identity)
+      if (room.host !== req.session.user)
         res
           .status(403)
           .send(JSON.stringify({ err: "Only hosts can delete a room" }));
@@ -224,44 +248,47 @@ app.delete("/api/room/:roomId", (req, res) => {
 });
 
 //Remove participant from an in-progress room
-app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
-  const roomId = req.params.roomId;
-  const participant = req.params.participantName;
-  rooms.findOne({ id: req.params.roomId }, function(err, room) {
-    if (err) res.status(500).send(err);
-    if (room) {
-      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
-      if (room.host !== req.body.identity)
-        return res.status(403).send(
-          JSON.stringify({
-            err: "Only hosts can remove a participant from a room"
-          })
-        );
-      else {
-        client.video.v1
-          .rooms(roomId)
-          .participants(participant)
-          .update({ status: "disconnected" })
-          .then(p => {
-            res.status(200).send(
-              JSON.stringify({
-                msg: "Removed participant " + participant + " with sid " + p.sid
-              })
-            );
-          })
-          .catch(err => {
-            res.status(500).send(JSON.stringify({ err: err }));
-          });
-      }
-    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
-  });
-});
+app.delete(
+  "/api/room/:roomId/participants/:participantName",
+  isAuthenticated,
+  (req, res) => {
+    const roomId = req.params.roomId;
+    const participant = req.params.participantName;
+    rooms.findOne({ id: req.params.roomId }, function(err, room) {
+      if (err) res.status(500).send(err);
+      if (room) {
+        if (room.host !== req.session.user)
+          return res.status(403).send(
+            JSON.stringify({
+              err: "Only hosts can remove a participant from a room"
+            })
+          );
+        else {
+          client.video.v1
+            .rooms(roomId)
+            .participants(participant)
+            .update({ status: "disconnected" })
+            .then(p => {
+              res.status(200).send(
+                JSON.stringify({
+                  msg:
+                    "Removed participant " + participant + " with sid " + p.sid
+                })
+              );
+            })
+            .catch(err => {
+              res.status(500).send(JSON.stringify({ err: err }));
+            });
+        }
+      } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    });
+  }
+);
 
 //Get token to access existing room
-app.post("/api/room/:roomId/token", (req, res) => {
+app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
   const roomId = req.params.roomId;
-  const identity = req.body.identity;
-  console.log("the identity is " + identity);
+  const identity = req.session.user;
   const token = getVideoToken(identity, roomId);
 
   rooms.findOne({ id: roomId }, function(err2, data) {
@@ -279,9 +306,10 @@ app.post("/api/room/:roomId/token", (req, res) => {
 });
 
 //Returns unique identifier for room, and identity associated with the created room is the host
-app.post("/api/room", (req, res) => {
+app.post("/api/room", isAuthenticated, (req, res) => {
+  console.log("HERE");
   const roomId = uuid.v4();
-  const identity = req.body.identity;
+  const identity = req.session.user;
   console.log(identity);
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
   rooms.create(
@@ -299,23 +327,100 @@ app.post("/api/room", (req, res) => {
   res.status(200).send(JSON.stringify({ id: roomId }));
 });
 
-//Return all the rooms that a user is host of
-app.post("/api/room/hosted", (req, res) => {
-  const host = req.body.identity;
-  rooms.find({ host: host }, function(err, hostedRooms) {
-    if (err) return res.status(500).send(err);
-    const roomnames = [];
-    const roomids = [];
-    hostedRooms.forEach(r => {
-      roomnames.push(r.name);
-      roomids.push(r.id);
-    });
-    return res.status(200).json({ names: roomnames, ids: roomids });
+// Upload file to the cloud
+app.post("/api/upload", multer.single("file"), (req, res, next) => {
+  // store file in bucket in google cloud
+  if (!req.file) {
+    res.status(200).json({ name: "none", url: "none" });
+    return;
+  }
+
+  // Create a new blob in the bucket and upload the file data.
+
+  // add random string to filename so that it doesnt get replaced
+  let filenameOg = req.file.originalname.slice(
+    0,
+    req.file.originalname.lastIndexOf(".")
+  );
+  const ext = req.file.originalname.slice(
+    req.file.originalname.lastIndexOf(".")
+  );
+  const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
+
+  const blob = bucket.file(filename.replace(/\s+/g, ""));
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on("error", err => {
+    next(err);
+  });
+
+  blobStream.on("finish", () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    return res.status(200).json({ url: publicUrl, name: filenameOg });
+  });
+
+  blobStream.end(req.file.buffer);
+});
+
+//Get the profile picture of the current logged-in user
+app.get("/api/users/me/profilePic", function(req, res) {
+  users.findOne({ email: req.session.user }, function(err3, user) {
+    if (err3) return res.status(500).json({ re: "server", message: err3 });
+    if (user) {
+      return res.status(200).json({ image: user.dp });
+    }
   });
 });
 
+// get summary data
+app.get("/api/room/summary/:roomId", function(req, res) {
+  client.video.v1.rooms
+    .list({
+      status: "completed"
+    })
+    .then(rooms => {
+      rooms.forEach(r => {
+        if (r.uniqueName === req.params.roomId) {
+          const duration =
+            "" +
+            Math.trunc(r.duration / 60 / 60) +
+            " hours, " +
+            Math.trunc(r.duration / 60) +
+            " minutes, " +
+            (r.duration % 60) +
+            " seconds";
+          client.video.v1
+            .rooms(r.sid)
+            .participants.list()
+            .then(participants => {
+              const sendBack = [];
+              participants.forEach(p => {
+                if (!sendBack.includes(p.identity)) {
+                  sendBack.push(p.identity);
+                }
+              });
+              return res
+                .status(200)
+                .json({ duration: duration, participants: sendBack });
+            })
+            .catch(() => {
+              return res
+                .status(404)
+                .send(JSON.stringify({ err: "Room not found" }));
+            });
+        }
+      });
+    })
+    .catch(() => {
+      return res.status(500).send(JSON.stringify({ err: "Error" }));
+    });
+});
+
 // sign up route
-app.post("/api/users", function(req, res, next) {
+app.post("/api/users", multer.single("file"), function(req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({ re: "email", message: "email is missing" });
@@ -324,65 +429,70 @@ app.post("/api/users", function(req, res, next) {
       .status(422)
       .json({ re: "password", message: "password is missing" }); // to do: all errors in .json
 
-  let password = req.body.password;
-  let email = req.body.identity;
+  // store dp in bucket in google cloud
+  if (!req.file) {
+    res.status(400).send("No file uploaded.");
+    return;
+  }
 
-  // check to see if email is already in use
-  users.findOne({ isLinkedinUser: false, email: email }, function(err3, user) {
-    if (err3) return res.status(500).json({ re: "server", message: err3 });
-    if (user) {
-      return res.status(409).json({
-        re: "email",
-        message: "an account with this email already exists"
+  // Create a new blob in the bucket and upload the file data.
+  const blob = bucket.file(req.file.originalname.replace(/\s+/g, ""));
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on("error", err => {
+    next(err);
+  });
+
+  blobStream.on("finish", () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    console.log(publicUrl);
+
+    let password = req.body.password;
+    let email = req.body.identity;
+
+    // check to see if email is already in use
+    users.findOne({ isLinkedinUser: false, email: email }, function(
+      err3,
+      user
+    ) {
+      if (err3) return res.status(500).json({ re: "server", message: err3 });
+      if (user) {
+        return res.status(409).json({
+          re: "email",
+          message: "an account with this email already exists"
+        });
+      }
+      // hash the password
+      const saltRounds = 10;
+      bcrypt.hash(password, saltRounds, function(err, hash) {
+        // insert user
+        users.create(
+          {
+            isLinkedinUser: false,
+            password: hash,
+            email: email,
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            dob: req.body.dob,
+            dp: publicUrl,
+            isVerified: false
+          },
+          function(err2, userCreated) {
+            if (err2) return res.status(500).json({ err: err2 });
+            req.session.user = userCreated.email;
+            return res
+              .status(200)
+              .json({ message: "signup success", email: userCreated.email });
+          }
+        );
       });
-    }
-    // hash the password
-    const saltRounds = 10;
-    bcrypt.hash(password, saltRounds, function(err, hash) {
-      // insert user
-      users.create(
-        {
-          isLinkedinUser: false,
-          password: hash,
-          email: email,
-          firstname: req.body.firstname,
-          lastname: req.body.lastname,
-          dob: req.body.dob,
-          dp: null,
-          isVerified: false
-        },
-        function(err2, userCreated) {
-          if (err2) return res.status(500).json({ err: err2 });
-          req.session.user = userCreated.email;
-
-          token.create(
-            {
-              user: userCreated._id,
-              token: crypto.randomBytes(32).toString("hex")
-            },
-            function(err, token) {
-              const url = `http://localhost:3000/users/${userCreated._id}/verify/${token.token}`;
-              const mailData = {
-                from: process.env.EMAIL,
-                to: userCreated.email,
-                subject: "Panorama verification",
-                html: `Hello ${userCreated.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`
-              };
-
-              transporter.sendMail(mailData, (error, info) => {
-                if (error) {
-                  return res.status(500).json({ error: error });
-                }
-                return res
-                  .status(200)
-                  .send({ message: "Mail sent", message_id: info.messageId });
-              });
-            }
-          );
-        }
-      );
     });
   });
+
+  blobStream.end(req.file.buffer);
 });
 
 // Login endpoint
@@ -396,7 +506,6 @@ app.post("/api/login", (req, res) => {
 
   let identity = req.body.identity;
   let password = req.body.password;
-  console.log(identity, password);
 
   // retrieve user from the database
   users.findOne({ isLinkedinUser: false, email: identity }, function(
@@ -408,7 +517,6 @@ app.post("/api/login", (req, res) => {
     if (!user.isVerified)
       return res.status(403).json({ error: "email not verified" });
     let hash = user.password;
-    console.log(user);
     bcrypt.compare(password, hash, function(err, result) {
       if (!result) {
         return res.status(401).json({ error: "access denied" });
@@ -743,12 +851,36 @@ app.post("/api/text-mail", function(req, res, next) {
   };
 
   transporter.sendMail(mailData, (error, info) => {
+    console.log("sending");
     if (error) {
       return console.log(error);
     }
     return res
       .status(200)
       .send({ message: "Mail send", message_id: info.messageId });
+  });
+});
+
+app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
+  rooms.findOne({ id: req.params.roomId }, function(err, room) {
+    if (err) return res.status(500).send(err);
+    if (room) {
+      return res.status(200).send(JSON.stringify({ host: room.host }));
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
+  });
+});
+
+app.post("/api/room/hosted", isAuthenticated, (req, res) => {
+  const host = req.session.user;
+  rooms.find({ host: host }, function(err, hostedRooms) {
+    if (err) return res.status(500).send(err);
+    const roomnames = [];
+    const roomids = [];
+    hostedRooms.forEach(r => {
+      roomnames.push(r.name);
+      roomids.push(r.id);
+    });
+    return res.status(200).json({ names: roomnames, ids: roomids });
   });
 });
 
@@ -761,11 +893,41 @@ app.get("/api/:userId/verify/:token", (req, res) => {
       err2,
       tok
     ) {
-      if (!token) return res.status(400).send({ error: "Invalid link" });
+      if (err2) return res.status(500).send({ error: "Server Issue" });
+      if (!tok) return res.status(404).send({ error: "Invalid link" });
       found.isVerified = true;
       found.save();
+      token.deleteOne({ token: req.params.token }, function(err3, tokfound) {
+        if (err3) return res.status(500).send({ error: "Server Issue" });
+        return res.status(200).send({ message: "Email verified successfully" });
+      });
     });
-    token.remove();
-    return res.status(200).send({ message: "Email verified successfully" });
+  });
+});
+
+app.post("/api/verification-mail", (req, res) => {
+  users.findOne({ email: req.body.identity }, function(err, userFound) {
+    if (err) return res.status(500).json({ error: err });
+    if (!userFound) return res.status(404).json({ error: "Not found" });
+
+    token.create(
+      { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
+      function(err, tok) {
+        const url = `http://localhost:3000/users/${userFound._id}/verify/${tok.token}`;
+        const mailData = {
+          from: process.env.EMAIL,
+          to: userFound.email,
+          subject: "Panorama verification",
+          html: `Hello ${userFound.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`
+        };
+
+        transporter.sendMail(mailData, (error, info) => {
+          if (error) {
+            return res.status(500).json({ error: error });
+          }
+          return res.status(200).json({ message: "Email sent" });
+        });
+      }
+    );
   });
 });

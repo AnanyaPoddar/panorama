@@ -19,15 +19,18 @@ import Whiteboard from "../Whiteboard/Whiteboard";
 import HostControls from "./HostControls";
 import LocalControls from "./LocalControls";
 import "./Room.css";
+import { useMultiplayerState } from "../Whiteboard/useMultiplayerState";
+
+import { TDExportType } from "@tldraw/tldraw";
 
 const Room = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
-  console.log("user is; ");
-  console.log(user);
   const navigate = useNavigate();
+  const { app } = useMultiplayerState(id);
 
   const [room, setRoom] = useState(null);
+  const [error, setError] = useState();
   //set the host of the current room, check this against the current user to ensure that they are the same
   const [host, setHost] = useState("");
   //only available for the host, when they successfully kick out a participant
@@ -56,16 +59,13 @@ const Room = () => {
   };
 
   //get token to connect to room with given id
-  //TODO: Handle errors
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/${id}/token`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
     })
       .then((res) => {
         return res.json();
@@ -73,7 +73,7 @@ const Room = () => {
       .then((json) => {
         connectToRoom(json.token);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => setError(err));
   }, []);
 
   //A user can only connect to a room if they receive a valid token to access that room, hence "room" will always be null unless a user has a valid grant to a room
@@ -84,7 +84,9 @@ const Room = () => {
       })
       //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
-        fetch(`http://localhost:5000/api/room/${id}/host`)
+        fetch(`http://localhost:5000/api/room/${id}/host`, {
+          credentials: "include",
+        })
           .then((res) => {
             return res.json();
           })
@@ -113,22 +115,25 @@ const Room = () => {
       //Wait before redirecting
       room.on("disconnected", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
-          navigate(`/room/inactive/${id}`);
+        if (host !== "" && host === user.email) {
+          
+          app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 })
+
+          navigate(`/room/summary/${id}`);
         } else {
           setTimeout(() => {
             setRedirect(true);
           }, 3000);
           setAlertMsg(
-            "You have been disconnected form the room. Redirecting to lobby..."
+            "You have been disconnected from the room. Redirecting to lobby..."
           );
         }
         //Wait until alert flashed before redirecting
       });
       room.on("roomEnded", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
-          navigate(`/room/inactive/${id}`);
+        if (host !== "" && host === user.email) {
+          navigate(`/room/summary/${id}`);
         }
         //if the room was ended by the host, and the current user is not the host, redirect to lobby.
         else {
@@ -157,9 +162,7 @@ const Room = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
+      credentials: "include",
     })
       .then((res) => {
         if (res.status === 200) {
@@ -167,7 +170,7 @@ const Room = () => {
           renderSuccessfulKick(participant);
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => setError(err));
   };
 
   const renderSuccessfulKick = (participant) => {

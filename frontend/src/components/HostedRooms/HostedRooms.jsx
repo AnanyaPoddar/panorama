@@ -38,9 +38,13 @@ const HostedRooms = () => {
       headers: {
         "Content-Type": "application/json"
       },
+<<<<<<< HEAD
       body: JSON.stringify({
         identity: user.email
       })
+=======
+      credentials: "include",
+>>>>>>> 132e54be64014f9f925da32e1e3d5fb8e93a932c
     })
       .then(res => {
         return res.json();
@@ -59,19 +63,21 @@ const HostedRooms = () => {
 
   const joinRoom = () => {
     console.log("testtttttttt");
-    fetch(`http://localhost:5000/api/room/${currRoom}/completed`)
-      .then(res => {
+    fetch(`http://localhost:5000/api/room/${currRoom}/completed`, {
+      credentials: "include",
+    })
+      .then((res) => {
         //Go to room if it exists, otherwise set error to show it does not exist
         console.log("here we go");
         if (res.status === 200) {
           console.log("HERE");
-          navigate(`/room/${currRoom}`);
+          navigate(`/room/inactive/${currRoom}`);
         } else {
           //TODO: Set appropriate error, may not just be 404
           console.log("Room Not Found");
         }
       })
-      .catch(error => console.log(error));
+      .catch((error) => console.log(error));
   };
 
   return (
@@ -83,26 +89,27 @@ const HostedRooms = () => {
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
-            boxSizing: "border-box"
-          }
+            boxSizing: "border-box",
+          },
         }}
       >
         <Toolbar />
         <Box sx={{ overflow: "auto" }}>
           <h2> My Rooms </h2>
           <List>
-            {rooms.map((text, index) => (
-              <ListItem key={text} disablePadding>
-                {/* on click, join the room*/}
-                {currRoom == ids[index] ? (
-                  <Button onClick={() => joinRoom()}> Join Room</Button>
-                ) : (
-                  <ListItemButton onClick={() => setCurrRoom(ids[index])}>
-                    <ListItemText primary={text} />
-                  </ListItemButton>
-                )}
-              </ListItem>
-            ))}
+            {rooms &&
+              rooms.map((text, index) => (
+                <ListItem key={text} disablePadding>
+                  {/* on click, join the room*/}
+                  {currRoom == ids[index] ? (
+                    <Button onClick={() => joinRoom()}> Join Room</Button>
+                  ) : (
+                    <ListItemButton onClick={() => setCurrRoom(ids[index])}>
+                      <ListItemText primary={text} />
+                    </ListItemButton>
+                  )}
+                </ListItem>
+              ))}
           </List>
         </Box>
       </Drawer>
@@ -111,7 +118,7 @@ const HostedRooms = () => {
           color="primary"
           value={type}
           exclusive
-          onChange={e => setType(e.target.value)}
+          onChange={(e) => setType(e.target.value)}
         >
           <ToggleButton value="join">Join Room</ToggleButton>
           <ToggleButton value="create">Create Room</ToggleButton>
