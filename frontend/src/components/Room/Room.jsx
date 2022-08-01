@@ -113,7 +113,7 @@ const Room = () => {
       //Wait before redirecting
       room.on("disconnected", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
+        if (host !== "" && host === user.email) {
           navigate(`/room/inactive/${id}`);
         } else {
           setTimeout(() => {
@@ -127,7 +127,7 @@ const Room = () => {
       });
       room.on("roomEnded", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
+        if (host !== "" && host === user.email) {
           navigate(`/room/inactive/${id}`);
         }
         //if the room was ended by the host, and the current user is not the host, redirect to lobby.
