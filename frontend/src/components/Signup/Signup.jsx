@@ -6,7 +6,7 @@ import "./Signup.css";
 import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
 import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from '../CallSummary/worker';
+import Worker from '../CallSummary/verificationWorker';
 
 function Signup() {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -83,7 +83,13 @@ function Signup() {
       return;
     }
 
+    if(newImg == null){
+      setErrorMessage("Profile picture is missing");
+      return;
+    }
+
     setErrorMessage(null);
+    
 
 
     const creds = { identity: email.toLowerCase().trim(), password: pass.trim(), firstname: firstname.trim(), lastname: lastname.trim(), dob: dob};
@@ -95,10 +101,7 @@ function Signup() {
     formdata.append("firstname", firstname.trim());
     formdata.append("lastname", lastname.trim());
     formdata.append("dob", dob);
-    
-    if(newImg != null){
-      formdata.append("file", newImg);
-    }
+    formdata.append("file", newImg);
     console.log(formdata);
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/users`, {
@@ -127,10 +130,10 @@ function Signup() {
           return res.json();
         };
       }).then((json) => {
+        // create worker and use it to send a verification email
         const worker = new WorkerBuilder(Worker);
         const emails = json.email;
-        console.log("here is what i got back" + emails);
-        worker.postMessage({ emails, names: "", type: "verification" });
+        worker.postMessage({ emails });
         worker.onerror = (err) => err;
         worker.onmessage = (e) => {
           let {success, time} = e.data;
@@ -250,7 +253,7 @@ function Signup() {
                 />
                 <br />
 
-                <div id="previewtext">Add an optional profile picture:</div>
+                <div id="previewtext">Add a profile picture:</div>
                 <img id="preview-dp" src={img}/>
                 <Button
                   variant="contained"

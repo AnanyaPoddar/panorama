@@ -32,3 +32,13 @@
 .page-heading {
   font-size: 40px;
 }
+
+.alert {
+  z-index: 10000;
+  position: absolute;
+  margin: auto;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  text-align: center;
+}

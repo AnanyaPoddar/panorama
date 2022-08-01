@@ -11,8 +11,10 @@ import {
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
 
+
 import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from "../CallSummary/worker";
+import Worker from "../CallSummary/verificationWorker";
+import { TDExportType } from "@tldraw/tldraw";
 
 const HostControls = ({ id }) => {
   const { user } = useContext(AuthContext);
@@ -26,8 +28,7 @@ const HostControls = ({ id }) => {
     })
     .then((res) => res.json())
     .then((json) => {
-      console.log(json);
-      sendSummary(json.data);
+      ;
     }).then( () => {
         fetch(`http://localhost:5000/api/room/${id}`, {
           method: "DELETE",
@@ -39,25 +40,12 @@ const HostControls = ({ id }) => {
             identity: user.email,
           }),
         }).then((res) => {
-          //only send the summary if the call was successfully ended
+          //only export the image if the call was successfully ended
           if (res.status === 200) {
             console.log("call ended");
           }
         });
     });
-  };
-
-  const sendSummary = (participants) => {
-    console.log("PARTICIPANTS", participants)
-        const worker = new WorkerBuilder(Worker);
-        const emails = participants;
-        const names = participants;
-        const type = "summary";
-        worker.postMessage({ emails, names, type });
-        worker.onerror = (err) => err;
-        worker.onmessage = (e) => {
-          worker.terminate();
-        };
   };
 
   return (

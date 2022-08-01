@@ -19,11 +19,15 @@ import Whiteboard from "../Whiteboard/Whiteboard";
 import HostControls from "./HostControls";
 import LocalControls from "./LocalControls";
 import "./Room.css";
+import { useMultiplayerState } from "../Whiteboard/useMultiplayerState";
+
+import { TDExportType } from "@tldraw/tldraw";
 
 const Room = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { app } = useMultiplayerState(id);
 
   const [room, setRoom] = useState(null);
   const [error, setError] = useState();
@@ -112,7 +116,10 @@ const Room = () => {
       room.on("disconnected", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
         if (host !== "" && host === user.email) {
-          navigate(`/room/inactive/${id}`);
+          
+          app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 })
+
+          navigate(`/room/summary/${id}`);
         } else {
           setTimeout(() => {
             setRedirect(true);
@@ -126,7 +133,7 @@ const Room = () => {
       room.on("roomEnded", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
         if (host !== "" && host === user.email) {
-          navigate(`/room/inactive/${id}`);
+          navigate(`/room/summary/${id}`);
         }
         //if the room was ended by the host, and the current user is not the host, redirect to lobby.
         else {

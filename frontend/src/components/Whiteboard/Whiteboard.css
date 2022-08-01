@@ -21,7 +21,16 @@
 
 .card {
   margin: 10px;
+  width: 200px;
   margin-top:0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.addicon {
+  height: 140px;
 }
 
 .card:hover {

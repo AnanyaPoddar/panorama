@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: "GET,POST,PUT,DELETE",
+    methods: "GET,POST,PUT,DELETE, PATCH",
     credentials: true,
   })
 );
@@ -145,8 +145,10 @@ app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
     });
 });
 
-// check completed rooms
+// check completed rooms for a room
 app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
+  
+  let found = false;
   client.video.v1.rooms
     .list({
       status: "completed",
@@ -154,33 +156,32 @@ app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
     .then((rooms) => {
       rooms.forEach((r) => {
         if (r.uniqueName === req.params.roomId) {
+          found=true;
+          console.log(r);
           client.video.v1
             .rooms(r.sid)
             .fetch()
             .then((room) => {
-              res.status(200).send(JSON.stringify({ room: room }));
+              return res.status(200).send(JSON.stringify({ room: room }));
             })
             .catch(() => {
               return res
-                .status(404)
+                .status(500)
                 .send(JSON.stringify({ err: "Room not found" }));
             });
         }
       });
+
+      if (!found) return res
+                  .status(404)
+                  .send(JSON.stringify({ err: "Room not found" }));
+      return res
+      .status(200)
+      .send(JSON.stringify({ message: "success" }));
     })
     .catch(() => {
       return res.status(500).send(JSON.stringify({ err: "Error" }));
     });
-});
-
-//Get the host of an existing room
-app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function (err, room) {
-    if (err) return res.status(500).send(err);
-    if (room) {
-      return res.status(200).send(JSON.stringify({ host: room.host }));
-    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
-  });
 });
 
 //Get all participants of a room (in-progress or completed)
@@ -307,20 +308,39 @@ app.post("/api/room", isAuthenticated, (req, res) => {
   res.status(200).send(JSON.stringify({ id: roomId }));
 });
 
-//Return all the rooms that a user is host of
-app.post("/api/room/hosted", isAuthenticated, (req, res) => {
-  const host = req.session.user;
-  rooms.find({ host: host }, function (err, hostedRooms) {
-    if (err) return res.status(500).send(err);
-    const roomnames = [];
-    const roomids = [];
-    hostedRooms.forEach((r) => {
-      roomnames.push(r.name);
-      roomids.push(r.id);
-    });
-    return res.status(200).json({ names: roomnames, ids: roomids });
+// Upload file to the cloud
+app.post("/api/upload", multer.single('file'), (req, res, next) => {
+  // store file in bucket in google cloud
+  if (!req.file) {
+    res.status(200).json({name: "none", url: "none"});
+    return;
+  }
+
+  // Create a new blob in the bucket and upload the file data.
+
+  // add random string to filename so that it doesnt get replaced
+  let filenameOg = req.file.originalname.slice(0, req.file.originalname.lastIndexOf("."));
+  const ext = req.file.originalname.slice(req.file.originalname.lastIndexOf("."));
+  const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
+
+  const blob = bucket.file(filename.replace(/\s+/g, ''));     
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on("error", (err) => {
+    next(err);
   });
-});
+
+  blobStream.on("finish", () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    return res.status(200).json({url: publicUrl, name: filenameOg})
+  });
+
+  blobStream.end(req.file.buffer);
+})
+
 
 //Get the profile picture of the current logged-in user
 app.get("/api/users/me/profilePic", function (req, res) {
@@ -330,6 +350,43 @@ app.get("/api/users/me/profilePic", function (req, res) {
       return res.status(200).json({ image: user.dp });
     }
   });
+});
+
+
+// get summary data 
+app.get("/api/room/summary/:roomId", function (req, res) {
+  client.video.v1.rooms
+    .list({
+      status: "completed",
+    })
+    .then((rooms) => {
+      rooms.forEach((r) => {
+        if (r.uniqueName === req.params.roomId) {
+          const duration = "" + (Math.trunc(r.duration/60/60)) + " hours, " + (Math.trunc(r.duration/60)) + " minutes, " + (r.duration%60) + " seconds"
+          client.video.v1
+            .rooms(r.sid)
+            .participants
+            .list()
+            .then((participants) => {
+              const sendBack = [];
+              participants.forEach( (p) => {
+                if (!(sendBack.includes(p.identity))) {
+                  sendBack.push(p.identity);
+                }
+              });
+              return res.status(200).json({duration: duration, participants: sendBack });
+            })
+            .catch(() => {
+              return res
+                .status(404)
+                .send(JSON.stringify({ err: "Room not found" }));
+            });
+        }
+      });
+    })
+    .catch(() => {
+      return res.status(500).send(JSON.stringify({ err: "Error" }));
+    });
 });
 
 // sign up route
@@ -349,7 +406,7 @@ app.post("/api/users", multer.single("file"), function (req, res, next) {
   }
 
   // Create a new blob in the bucket and upload the file data.
-  const blob = bucket.file(req.file.originalname);
+  const blob = bucket.file(req.file.originalname.replace(/\s+/g, ''));
   const blobStream = blob.createWriteStream();
 
   blobStream.on("error", (err) => {
@@ -439,7 +496,7 @@ app.post("/api/login", (req, res) => {
     }
   );
 });
-// email verification
+
 
 // initialize linkedin strategy
 passport.use(
@@ -563,12 +620,36 @@ app.post("/api/text-mail", function (req, res, next) {
   };
 
   transporter.sendMail(mailData, (error, info) => {
+     console.log("sending");
     if (error) {
       return console.log(error);
     }
     return res
       .status(200)
       .send({ message: "Mail send", message_id: info.messageId });
+  });
+});
+
+app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
+    if (err) return res.status(500).send(err);
+    if (room) {
+      return res.status(200).send(JSON.stringify({ host: room.host }));
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
+  });
+});
+
+app.post("/api/room/hosted", isAuthenticated, (req, res) => {
+  const host = req.session.user;
+  rooms.find({ host: host }, function (err, hostedRooms) {
+    if (err) return res.status(500).send(err);
+    const roomnames = [];
+    const roomids = [];
+    hostedRooms.forEach((r) => {
+      roomnames.push(r.name);
+      roomids.push(r.id);
+    });
+    return res.status(200).json({ names: roomnames, ids: roomids });
   });
 });
 
@@ -580,15 +661,17 @@ app.get("/api/:userId/verify/:token", (req, res) => {
     token.findOne(
       { user: found._id, token: req.params.token },
       function (err2, tok) {
-        if (!tok) return res.status(400).send({ error: "Invalid link" });
+        if (err2) return res.status(500).send({ error: "Server Issue" });
+        if (!tok) return res.status(404).send({ error: "Invalid link" });
         found.isVerified = true;
         found.save();
+        token.deleteOne({ token: req.params.token }, function (err3, tokfound) {
+          if (err3) return res.status(500).send({ error: "Server Issue" });
+          return res.status(200).send({ message: "Email verified successfully" });
+        });
       }
     );
-    token.deleteOne({ token: req.params.token }, function (err, tokfound) {
-      if (!tokfound) return res.status(404).send({ error: "Invalid link" });
-      return res.status(200).send({ message: "Email verified successfully" });
-    });
+    
   });
 });
 

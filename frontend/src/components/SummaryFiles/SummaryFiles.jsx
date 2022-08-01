@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Input } from "@mui/material";
+import { Button, TextField, Input, Alert } from "@mui/material";
 import "../../components/Form.css";
 import errorIcon from "../../assets/exclamation-mark.png";
 import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from '../CallSummary/worker';
+import Worker from '../CallSummary/summaryWorker';
+import { useNavigate, useParams, Navigate } from "react-router-dom";
 import './SummaryFiles.css'
 
+
 function SummaryFiles() {
+  
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [success, setSuccess] = useState("");
+  const [alertMsg, setAlertMsg] = useState("");
+  
+  const { id } = useParams();
+  const navigate = useNavigate();
 
 
   const handleSubmit = (e) => {
@@ -20,16 +27,17 @@ function SummaryFiles() {
     setErrorMessage(null);
 
     let formdata = new FormData();
-    if(file == null){
-      return;
-      /// navigate to lobby
+    if(file != null){
+      formdata.append("file", file);
     }
-    formdata.append("file", file);
     console.log(formdata);
-    // Fetch call to add files to the cloud
-    fetch(``, {
+
+
+    // Fetch call to add files to the cloud and return a url to the file
+    fetch(`http://localhost:5000/api/upload`, {
       method: "POST",
       body: formdata,
+      credentials: "include",
     })
       .then((res) => {
         if (res.status == 200) {
@@ -38,16 +46,30 @@ function SummaryFiles() {
           return res.json();
         };
       }).then((json) => {
-        // worker stuff from room
-          let {success, time} = e.data;
-          if (success==="success") {
-            // navigate to lobby
+        
+          // worker stuff
+          const fileData = json;
+          const worker = new WorkerBuilder(Worker);
+          worker.postMessage({fileData, id });
+          worker.onerror = (err) => err;
+          worker.onmessage = (e) => {
+            worker.terminate();
+            let {success, time} = e.data;
+              if (success!="success") {
+                console.error(success)
+              }
+          // navigate to lobby
+          setTimeout(() => {
+            navigate('/lobby');
+          }, 5000);
+          setAlertMsg("Summary has been sent to participant emails. Redirecting to lobby...");
           }
        })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
+
 
   const changeFile = (data) =>{
 
@@ -58,7 +80,7 @@ function SummaryFiles() {
         return;
       }
       setErrorMessage("");
-      let fname = data.target.value;
+      let fname = data.target.value.replace(/\s+/g, '');
       setSuccess(fname.slice(fname.lastIndexOf("\\")+1) + " has been successfully saved");
       setFile(data.target.files[0]);
     }
@@ -94,6 +116,16 @@ function SummaryFiles() {
                 Send Summary                
               </Button>
               </div>
+              <div className="btn">
+              <Button variant="outlined" className="btn" onClick={() => navigate(`/room/inactive/${id}`)}>
+                Back to Board                
+              </Button>
+              </div>
+              {alertMsg !== "" && (
+                <Alert className="alert" severity="success">
+                  {alertMsg}
+                </Alert>
+              )}
             </div>
           </form>
       </div>

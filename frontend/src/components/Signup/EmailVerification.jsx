@@ -15,11 +15,16 @@ const EmailVerification = () => {
         },
       })
         .then((res) => {
+          if (res.status===200) {
+            
+            setValidUrl(true);
+          }
+          
+          setValidUrl(false);
           return res.json();
         })
         .then((json) => {
           console.log(json);
-          setValidUrl(true);
         })
         .catch((err) => {
           setValidUrl(false);

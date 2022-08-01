@@ -78,7 +78,7 @@ const Navbar = () => {
             <Button variant="raised" onClick={() => navigate("/credits")}>
               Credits
             </Button>
-            {loggedIn ? (
+            {loggedIn && user? (
               <>
                 <IconButton sx={{ p: 0 }}>
                   <Avatar alt={user.email} src={profilePic} />

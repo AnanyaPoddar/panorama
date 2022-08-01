@@ -5,7 +5,7 @@ export const kanbanTemplate = {
     "pages": {
       "page": {
         "id": "page",
-        "name": "Page 1",
+        "name": "Panorama",
         "childIndex": 1,
         "shapes": {
           "a41ad056-c660-4139-054c-6d20e84a843d": {

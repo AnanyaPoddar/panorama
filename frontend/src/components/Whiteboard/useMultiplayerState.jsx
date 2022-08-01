@@ -142,6 +142,7 @@ export function useMultiplayerState(roomId) {
   }, [app]);
 
   return {
+    app,
     onMount,
     onChangePage,
     onUndo,
