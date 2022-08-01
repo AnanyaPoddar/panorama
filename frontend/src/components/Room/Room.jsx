@@ -23,11 +23,10 @@ import "./Room.css";
 const Room = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
-  console.log("user is; ");
-  console.log(user);
   const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
+  const [error, setError] = useState();
   //set the host of the current room, check this against the current user to ensure that they are the same
   const [host, setHost] = useState("");
   //only available for the host, when they successfully kick out a participant
@@ -56,7 +55,6 @@ const Room = () => {
   };
 
   //get token to connect to room with given id
-  //TODO: Handle errors
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/${id}/token`, {
       method: "POST",
@@ -71,7 +69,7 @@ const Room = () => {
       .then((json) => {
         connectToRoom(json.token);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => setError(err));
   }, []);
 
   //A user can only connect to a room if they receive a valid token to access that room, hence "room" will always be null unless a user has a valid grant to a room
@@ -165,7 +163,7 @@ const Room = () => {
           renderSuccessfulKick(participant);
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => setError(err));
   };
 
   const renderSuccessfulKick = (participant) => {

@@ -75,12 +75,14 @@ const Navbar = () => {
             )}
           </div>
           <div className="nav-right">
+            <Button variant="raised" onClick={() => navigate("/credits")}>
+              Credits
+            </Button>
             {loggedIn ? (
               <>
                 <IconButton sx={{ p: 0 }}>
                   <Avatar alt={user.email} src={profilePic} />
                 </IconButton>
-                {/* <h4 onClick={() => navigate("/myProfile")}>My Profile</h4> */}
                 <Button variant="contained" color="primary" onClick={logout}>
                   Logout
                 </Button>

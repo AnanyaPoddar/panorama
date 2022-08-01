@@ -7,7 +7,7 @@ const Credits = () => {
       <h2>Styling Libraries</h2>
       <ul>
         <li>
-          Material UI for buttons, navbar, themes, and many frontend components
+          Material UI for buttons, navbar, themes, and many frontend components{" "}
           <a href="https://mui.com/">MUI</a>
         </li>
       </ul>
