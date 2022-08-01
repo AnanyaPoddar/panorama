@@ -21,7 +21,6 @@ const HostControls = ({ id }) => {
   const [openConfirmation, setOpenConfirmation] = useState(false);
   const [participants, setParticipants] = useState("");
 
-  //TODO: Change API call to not pass in identity through body
   const endCall = () => {
     /*fetch(`http://localhost:5000/api/room/${id}/participants`)
     .then((res) => res.json())
@@ -35,9 +34,7 @@ const HostControls = ({ id }) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
+      credentials: "include",
     }).then((res) => {
       //only send the summary if the call was successfully ended
       if (res.status === 200) sendSummary();
@@ -45,16 +42,15 @@ const HostControls = ({ id }) => {
   };
 
   const sendSummary = () => {
-    
-        const worker = new WorkerBuilder(Worker);
-        const emails = ['mushtaq.sara62@gmail.com'];
-        const names = ["Hi"];
-        const type = "summary";
-        worker.postMessage({ emails, names, type });
-        worker.onerror = (err) => err;
-        worker.onmessage = (e) => {
-          worker.terminate();
-        };
+    const worker = new WorkerBuilder(Worker);
+    const emails = ["mushtaq.sara62@gmail.com"];
+    const names = ["Hi"];
+    const type = "summary";
+    worker.postMessage({ emails, names, type });
+    worker.onerror = (err) => err;
+    worker.onmessage = (e) => {
+      worker.terminate();
+    };
   };
 
   return (

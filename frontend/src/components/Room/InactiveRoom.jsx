@@ -15,7 +15,9 @@ const InactiveRoom = () => {
   const [isHost, setIsHost] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/${id}/host`)
+    fetch(`http://localhost:5000/api/room/${id}/host`, {
+      credentials: "include",
+    })
       .then((res) => {
         return res.json();
       })

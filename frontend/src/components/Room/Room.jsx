@@ -60,12 +60,10 @@ const Room = () => {
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/${id}/token`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
     })
       .then((res) => {
         return res.json();
@@ -84,7 +82,9 @@ const Room = () => {
       })
       //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
-        fetch(`http://localhost:5000/api/room/${id}/host`)
+        fetch(`http://localhost:5000/api/room/${id}/host`, {
+          credentials: "include",
+        })
           .then((res) => {
             return res.json();
           })
@@ -120,7 +120,7 @@ const Room = () => {
             setRedirect(true);
           }, 3000);
           setAlertMsg(
-            "You have been disconnected form the room. Redirecting to lobby..."
+            "You have been disconnected from the room. Redirecting to lobby..."
           );
         }
         //Wait until alert flashed before redirecting
@@ -157,9 +157,7 @@ const Room = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
+      credentials: "include",
     })
       .then((res) => {
         if (res.status === 200) {

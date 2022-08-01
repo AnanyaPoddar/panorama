@@ -22,19 +22,19 @@ const Signin = () => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Credentials": true
-        }
+          "Access-Control-Allow-Credentials": true,
+        },
       })
-        .then(response => {
+        .then((response) => {
           if (response.status === 200) return response.json();
           throw new Error("authentication has been failed!");
         })
-        .then(json => {
+        .then((json) => {
           console.log(json);
           setUser({ email: json.email });
           navigate("/lobby");
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error:", error);
         });
     }
