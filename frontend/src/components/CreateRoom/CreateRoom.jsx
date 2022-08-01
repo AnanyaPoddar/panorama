@@ -25,8 +25,8 @@ const CreateRoom = () => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
-        identity: user.email,
         roomName: roomName
       }),
     })

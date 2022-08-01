@@ -15,13 +15,15 @@ const InactiveRoom = () => {
   const [isHost, setIsHost] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/${id}/host`)
+    fetch(`http://localhost:5000/api/room/${id}/host`, {
+      credentials: "include",
+    })
       .then((res) => {
         return res.json();
       })
       .then((json) => {
         //only the host of the room has access to it in its inactive state
-        if (json.host !== user.name) {
+        if (json.host !== user.email) {
           setIsHost(false);
           setTimeout(() => {
             setRedirect(true);

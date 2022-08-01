@@ -60,12 +60,10 @@ const Room = () => {
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/${id}/token`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
     })
       .then((res) => {
         return res.json();
@@ -84,7 +82,9 @@ const Room = () => {
       })
       //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
-        fetch(`http://localhost:5000/api/room/${id}/host`)
+        fetch(`http://localhost:5000/api/room/${id}/host`, {
+          credentials: "include",
+        })
           .then((res) => {
             return res.json();
           })
@@ -113,7 +113,7 @@ const Room = () => {
       //Wait before redirecting
       room.on("disconnected", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
+        if (host !== "" && host === user.email) {
           navigate(`/room/inactive/${id}`);
         } else {
           setTimeout(() => {
@@ -127,7 +127,7 @@ const Room = () => {
       });
       room.on("roomEnded", () => {
         //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
-        if (host !== "" && host === user.name) {
+        if (host !== "" && host === user.email) {
           navigate(`/room/inactive/${id}`);
         }
         //if the room was ended by the host, and the current user is not the host, redirect to lobby.
@@ -157,9 +157,7 @@ const Room = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        identity: user.email,
-      }),
+      credentials: "include",
     })
       .then((res) => {
         if (res.status === 200) {
