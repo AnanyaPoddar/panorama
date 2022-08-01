@@ -1,5 +1,5 @@
 const express = require("express");
-const {format} = require('util');
+const { format } = require("util");
 const nodemailer = require("nodemailer");
 const http = require("http");
 const uuid = require("uuid");
@@ -13,7 +13,6 @@ const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const Multer = require("multer");
-
 
 const port = 5000;
 
@@ -64,10 +63,13 @@ app.get("/api/user", function (req, res) {
 });
 
 // google cloud storage
-const {Storage} = require('@google-cloud/storage');
+const { Storage } = require("@google-cloud/storage");
 
 // Instantiate a storage client
-const storage = new Storage({ projectId: "true-oasis-357701", keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS});
+const storage = new Storage({
+  projectId: "true-oasis-357701",
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+});
 
 // Multer is required to process file uploads and make them available via
 // req.files.
@@ -187,11 +189,10 @@ app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
 
   client.video.v1
     .rooms(roomId)
-    .participants
-    .list({status:"connected"})
+    .participants.list({ status: "connected" })
     .then((participants) => {
       const sendBack = [];
-      participants.forEach ((p) => {
+      participants.forEach((p) => {
         sendBack.push(p.identity);
       });
       return res.status(200).send(JSON.stringify({ data: sendBack }));
@@ -321,8 +322,18 @@ app.post("/api/room/hosted", isAuthenticated, (req, res) => {
   });
 });
 
+//Get the profile picture of the current logged-in user
+app.get("/api/users/me/profilePic", function (req, res) {
+  users.findOne({ email: req.session.user }, function (err3, user) {
+    if (err3) return res.status(500).json({ re: "server", message: err3 });
+    if (user) {
+      return res.status(200).json({ image: user.dp });
+    }
+  });
+});
+
 // sign up route
-app.post("/api/users", multer.single('file'), function (req, res, next) {
+app.post("/api/users", multer.single("file"), function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({ re: "email", message: "email is missing" });
@@ -331,10 +342,9 @@ app.post("/api/users", multer.single('file'), function (req, res, next) {
       .status(422)
       .json({ re: "password", message: "password is missing" }); // to do: all errors in .json
 
-
   // store dp in bucket in google cloud
   if (!req.file) {
-    res.status(400).send('No file uploaded.');
+    res.status(400).send("No file uploaded.");
     return;
   }
 
@@ -342,11 +352,11 @@ app.post("/api/users", multer.single('file'), function (req, res, next) {
   const blob = bucket.file(req.file.originalname);
   const blobStream = blob.createWriteStream();
 
-  blobStream.on('error', err => {
+  blobStream.on("error", (err) => {
     next(err);
   });
 
-  blobStream.on('finish', () => {
+  blobStream.on("finish", () => {
     // The public URL can be used to directly access the file via HTTP.
     const publicUrl = format(
       `https://storage.googleapis.com/${bucket.name}/${blob.name}`
@@ -354,41 +364,45 @@ app.post("/api/users", multer.single('file'), function (req, res, next) {
     console.log(publicUrl);
 
     let password = req.body.password;
-  let email = req.body.identity;
+    let email = req.body.identity;
 
-  // check to see if email is already in use
-  users.findOne(
-    { isLinkedinUser: false, email: email },
-    function (err3, user) {
-      if (err3) return res.status(500).json({re: "server", message: err3});
-      if (user) {
-        return res.status(409).json({re: "email", message: "an account with this email already exists"});
+    // check to see if email is already in use
+    users.findOne(
+      { isLinkedinUser: false, email: email },
+      function (err3, user) {
+        if (err3) return res.status(500).json({ re: "server", message: err3 });
+        if (user) {
+          return res.status(409).json({
+            re: "email",
+            message: "an account with this email already exists",
+          });
+        }
+        // hash the password
+        const saltRounds = 10;
+        bcrypt.hash(password, saltRounds, function (err, hash) {
+          // insert user
+          users.create(
+            {
+              isLinkedinUser: false,
+              password: hash,
+              email: email,
+              firstname: req.body.firstname,
+              lastname: req.body.lastname,
+              dob: req.body.dob,
+              dp: publicUrl,
+              isVerified: false,
+            },
+            function (err2, userCreated) {
+              if (err2) return res.status(500).json({ err: err2 });
+              req.session.user = userCreated.email;
+              return res
+                .status(200)
+                .json({ message: "signup success", email: userCreated.email });
+            }
+          );
+        });
       }
-      // hash the password
-      const saltRounds = 10;
-      bcrypt.hash(password, saltRounds, function (err, hash) {
-        // insert user
-        users.create(
-          {
-            isLinkedinUser: false,
-            password: hash,
-            email: email,
-            firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            dob: req.body.dob,
-            dp: publicUrl,
-            isVerified: false
-          },
-          function (err2, userCreated) {
-            if (err2) return res.status(500).json({err: err2});
-            req.session.user = userCreated.email;
-            return res.status(200).json({ message: "signup success", email: userCreated.email});
-          }
-        );
-      });
-    }
-  );
-
+    );
   });
 
   blobStream.end(req.file.buffer);
