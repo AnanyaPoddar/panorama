@@ -184,7 +184,7 @@ function Signup() {
               placeholder="Enter email"
               inputRef={emailfield}
               value={email}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
               onChange={e => setEmail(e.target.value)}
             />
             <br />
@@ -194,7 +194,7 @@ function Signup() {
               placeholder="Enter password"
               inputRef={password1}
               value={pass}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
               onChange={e => setPass(e.target.value)}
             />
             <br />
@@ -204,7 +204,7 @@ function Signup() {
               inputRef={password2}
               placeholder="Confirm password"
               value={pass2}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
               onChange={e => setPass2(e.target.value)}
             />
             <br />
@@ -230,7 +230,7 @@ function Signup() {
                   placeholder="Enter your first name"
                   inputRef={firstfield}
                   value={firstname}
-                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
                   onChange={e => setFname(e.target.value)}
                 />
                 <br />
@@ -239,7 +239,7 @@ function Signup() {
                   placeholder="Enter your last name"
                   inputRef={lastfield}
                   value={lastname}
-                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
                   onChange={e => setLname(e.target.value)}
                 />
                 <br />
@@ -248,7 +248,7 @@ function Signup() {
                   placeholder="Date of birth (yyyy/mm/dd)"
                   value={dob}
                   inputRef={dobfield}
-                  inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+                  inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
                   onChange={e => setDob(e.target.value)}
                 />
                 <br />

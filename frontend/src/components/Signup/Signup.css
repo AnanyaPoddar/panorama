@@ -3,7 +3,7 @@
   display: flex;
   padding-right: 10%;
   padding-left: 10%;
-  font-size: 30px;
+  font-size: 20px;
   font-family: "Avenir", "Franklin Gothic", Arial, sans-serif;
   flex-direction: column;
   align-content: center;
@@ -12,7 +12,7 @@
 }
 
 .error {
-  font-size: 20px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   color: #e04f5f;
@@ -20,7 +20,7 @@
 }
 
 .success {
-  font-size: 20px;
+  font-size: 15px;
   display: flex;
   align-items: center;
   color: #2cad5b;
@@ -28,7 +28,7 @@
 }
 
 .page-heading {
-  font-size: 40px;
+  font-size: 35px;
 }
 
 .link {
@@ -45,7 +45,7 @@
   padding-right: 5px;
 }
 .pass-desc {
-  font-size: 15px;
+  font-size: 12px;
   width: 350px;
   padding-bottom: 20px;
 }
@@ -56,7 +56,7 @@
 }
 
 #previewtext {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 @font-face {

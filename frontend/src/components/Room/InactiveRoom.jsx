@@ -35,13 +35,18 @@ const InactiveRoom = () => {
   return (
     <div className="room page inactive">
       <Whiteboard roomId={id} />
-      <Button
-        variant="contained"
-        className="reactivate-btn"
-        onClick={() => navigate(`/room/${id}`)}
-      >
-        Reactivate this Room
-      </Button>
+      <div className="btn-group">
+        <Button
+          variant="contained"
+          className="reactivate-btn"
+          onClick={() => navigate(`/room/${id}`)}
+        >
+          Reactivate this Room
+        </Button>
+        <Button variant="contained" onClick={() => navigate("/lobby")}>
+          Back to Lobby
+        </Button>
+      </div>
       {!isHost && (
         <div className="page protected">
           <Alert severity="error">
