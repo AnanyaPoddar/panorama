@@ -159,12 +159,17 @@ app.get("/api/room/:roomId/host", (req, res) => {
 //Get all participants of a room (in-progress or completed)
 app.get("/api/room/:roomId/participants", (req, res) => {
   const roomId = req.params.roomId;
+
   client.video.v1
     .rooms(roomId)
-    .participants()
-    .fetch()
+    .participants
+    .list({status:"connected"})
     .then((participants) => {
-      res.status(200).send(JSON.stringify({ data: participants }));
+      const sendBack = [];
+      participants.forEach ((p) => {
+        sendBack.push(p.identity);
+      });
+      return res.status(200).send(JSON.stringify({ data: sendBack }));
     })
     .catch((err) => {
       console.log(err);

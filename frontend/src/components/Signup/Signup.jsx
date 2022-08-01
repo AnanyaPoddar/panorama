@@ -81,6 +81,23 @@ function Signup() {
       return;
     }
 
+    // check dob is at least 18 years ago
+    const now = new Date();
+    let eighteenago = new Date();
+    eighteenago.setFullYear(now.getFullYear() - 18);
+    if (!(validator.isBefore(dob, eighteenago.getFullYear()+"/"+ (eighteenago.getMonth()+1)+"/" + eighteenago.getDate()))) {
+      setErrorMessage("You must be at least 18 years old.");
+      return;
+    }
+
+    // check dob is after 1900
+    if (!(validator.isAfter(dob, "1900/01/01"))) {
+      setErrorMessage("This date is too far in the past.");
+      return;
+    }
+    
+
+
     setErrorMessage(null);
 
 
@@ -136,6 +153,8 @@ function Signup() {
       { page==1 ? ( 
         <div className="inner">
           <div className = "page-heading"> Get started in just a few simple steps. </div>
+          
+          <br />
           <form onSubmit={nextPage} className="form">
             {errorMessage && (
               <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
@@ -143,13 +162,12 @@ function Signup() {
             {success && (
               <p className="success"> {success} </p>
             )}
-            <br />
             <TextField
               variant="standard"
               placeholder="Enter email"
               inputRef={emailfield}
               value={email}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
               onChange={e => setEmail(e.target.value)}
             />
             <br />
@@ -159,7 +177,7 @@ function Signup() {
               placeholder="Enter password"
               inputRef={password1}
               value={pass}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
               onChange={e => setPass(e.target.value)}
             />
             <br />
@@ -169,7 +187,7 @@ function Signup() {
               inputRef={password2}
               placeholder="Confirm password"
               value={pass2}
-              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
               onChange={e => setPass2(e.target.value)}
             />
             <br />

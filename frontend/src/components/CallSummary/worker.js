@@ -2,6 +2,7 @@
 export default () => {
   onmessage = (e) => {
     let { emails, names, type } = e.data;
+    console.log("HERE EMAILS", emails, names, type);
     if (type==="verification") {
       fetch(`http://localhost:5000/api/verification-mail`, {
         method: "POST",

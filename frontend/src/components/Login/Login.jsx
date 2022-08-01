@@ -66,14 +66,17 @@ function Login() {
     <div className= "inner">
       <div className = "page-heading"> Welcome back! Log in to get started. </div>
       <form onSubmit={handleSubmit} className="form">
-        {errorMessage && (
+      <br />
+      {errorMessage && (
                 <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
         )}
+
         <TextField
           variant="standard"
           placeholder="Enter email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
+          onChange={(e) => setEmail(e.target.value.trim())}
         />
         <br />
         <TextField
@@ -81,6 +84,7 @@ function Login() {
           type="password"
           placeholder="Enter password"
           value={pass}
+          inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
           onChange={(e) => setPass(e.target.value)}
         />
         <br />
