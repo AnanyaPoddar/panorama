@@ -63,7 +63,7 @@ const HostedRooms = () => {
         console.log("here we go");
         if (res.status === 200) {
           console.log("HERE");
-          navigate(`/room/${currRoom}`);
+          navigate(`/room/inactive/${currRoom}`);
         } else {
           //TODO: Set appropriate error, may not just be 404
           console.log("Room Not Found");
