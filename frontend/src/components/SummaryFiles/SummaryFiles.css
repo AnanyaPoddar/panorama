@@ -9,7 +9,9 @@
     align-content: center;
     justify-content: center;
     align-items: center;
+    height: 100vh;
 }
+
 
 .error {
   font-size: 20px;
@@ -30,36 +32,3 @@
 .page-heading {
   font-size: 40px;
 }
-
-.link {
-  text-decoration: none;
-  font-weight: bold;
-  color: #3caba5;
-  cursor: pointer;
-}
-
-.errorIcon {
-  height: 17px;
-  width: 17px;
-  flex: 1;
-  padding-right: 5px;
-}
-.pass-desc {
-  font-size: 15px;
-  width: 350px;
-  padding-bottom: 20px;
-}
-
-#preview-dp {
-  width: 150px;
-  padding: 30px;
-}
-
-#previewtext {
-  font-size: 22px;
-}
-
-@font-face {
-  font-family: Avenir;
-  src: url(../../assets/fonts/AvenirLTStd-Roman.otf);
-} 

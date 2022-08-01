@@ -120,7 +120,7 @@ const Room = () => {
             setRedirect(true);
           }, 3000);
           setAlertMsg(
-            "You have been disconnected form the room. Redirecting to lobby..."
+            "You have been disconnected from the room. Redirecting to lobby..."
           );
         }
         //Wait until alert flashed before redirecting

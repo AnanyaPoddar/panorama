@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, Input } from "@mui/material";
 import validator from 'validator';
 import "../../components/Form.css";
 import "./Signup.css";
@@ -19,6 +19,8 @@ function Signup() {
   const [firstname, setFname] = useState("");
   const [lastname, setLname] = useState("");
   const [dob, setDob] = useState("");
+  const [img, setImg] = useState(null);
+  const [newImg, setNewImg] = useState(null);
 
   const password2 = React.useRef(null);
   const password1 = React.useRef(null);
@@ -103,13 +105,22 @@ function Signup() {
 
     const creds = { identity: email.toLowerCase().trim(), password: pass.trim(), firstname: firstname.trim(), lastname: lastname.trim(), dob: dob};
     console.log(creds);
+
+    let formdata = new FormData();
+    formdata.append("identity", email.toLowerCase().trim());
+    formdata.append("password", pass.trim());
+    formdata.append("firstname", firstname.trim());
+    formdata.append("lastname", lastname.trim());
+    formdata.append("dob", dob);
+    
+    if(newImg != null){
+      formdata.append("file", newImg);
+    }
+    console.log(formdata);
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/users`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(creds),
+      body: formdata,
     })
       .then((res) => {
         if (res.status != 200) {
@@ -128,6 +139,8 @@ function Signup() {
           setFname("");
           setLname("");
           setDob("");
+          setImg("");
+          setNewImg("");
           return res.json();
         };
       }).then((json) => {
@@ -148,6 +161,25 @@ function Signup() {
         console.error("Error:", error);
       });
   };
+
+  const changeImage = (data) =>{
+    let fileName = data.target.value;
+    let extFile = fileName
+      .substr(fileName.lastIndexOf(".") + 1, fileName.length)
+      .toLowerCase();
+    if (!["gif", "png", "jpeg", "jpg"].includes(extFile)) {
+      setErrorMessage("File must be jpg/jpeg or png");
+      return;
+    }
+    if (data.target.files[0].size / 1000 / 1000 > 2) {
+      setErrorMessage("File must not exceed 2MB");
+      return;
+    }
+    setErrorMessage("");
+    setImg(URL.createObjectURL(data.target.files[0]))
+    setNewImg(data.target.files[0])
+}
+
   return (
     <div>
       { page==1 ? ( 
@@ -234,6 +266,23 @@ function Signup() {
                   inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
                   onChange={e => setDob(e.target.value)}
                 />
+                <br />
+
+                <div id="previewtext">Add an optional profile picture:</div>
+                <img id="preview-dp" src={img}/>
+                <Button
+                  variant="contained"
+                  component="label"
+                >
+                  Upload File
+                  <input
+                    type="file"
+                    id="dp"
+                    accept="image/png, image/jpeg, image/jpg"
+                    hidden
+                    onChange={(data) =>{changeImage(data)}}
+                  />
+                </Button>
               <br />
               <div className="btns">
                 <div className="btn">

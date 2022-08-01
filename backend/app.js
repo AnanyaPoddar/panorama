@@ -1,4 +1,5 @@
 const express = require("express");
+const {format} = require('util');
 const nodemailer = require("nodemailer");
 const http = require("http");
 const uuid = require("uuid");
@@ -11,6 +12,8 @@ const passport = require("passport");
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const Multer = require("multer");
+
 
 const port = 5000;
 
@@ -55,6 +58,24 @@ app.get("/api/user", function (req, res) {
     return res.status(200).json(null);
   }
 });
+
+// google cloud storage
+const {Storage} = require('@google-cloud/storage');
+
+// Instantiate a storage client
+const storage = new Storage({ projectId: "true-oasis-357701", keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS});
+
+// Multer is required to process file uploads and make them available via
+// req.files.
+const multer = Multer({
+  storage: Multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // no larger than 5mib,
+  },
+});
+
+// A bucket is a container for objects (files).
+const bucket = storage.bucket("oasis-panorama");
 
 const server = http.createServer(app);
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -292,14 +313,36 @@ app.post("/api/room/hosted", (req, res) => {
 
 
 // sign up route
-app.post("/api/users", function (req, res, next) {
+app.post("/api/users", multer.single('file'), function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({re: "email", message: "email is missing"});
   if (!("password" in req.body))
     return res.status(422).json({re: "password", message: "password is missing"}); // to do: all errors in .json
 
-  let password = req.body.password;
+
+  // store dp in bucket in google cloud
+  if (!req.file) {
+    res.status(400).send('No file uploaded.');
+    return;
+  }
+
+  // Create a new blob in the bucket and upload the file data.
+  const blob = bucket.file(req.file.originalname);
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on('error', err => {
+    next(err);
+  });
+
+  blobStream.on('finish', () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    console.log(publicUrl);
+
+    let password = req.body.password;
   let email = req.body.identity;
 
   // check to see if email is already in use
@@ -322,7 +365,7 @@ app.post("/api/users", function (req, res, next) {
             firstname: req.body.firstname,
             lastname: req.body.lastname,
             dob: req.body.dob,
-            dp: null,
+            dp: publicUrl,
             isVerified: false
           },
           function (err2, userCreated) {
@@ -334,6 +377,10 @@ app.post("/api/users", function (req, res, next) {
       });
     }
   );
+
+  });
+
+  blobStream.end(req.file.buffer);
 });
 
 // Login endpoint
