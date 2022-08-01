@@ -5,14 +5,14 @@ import "./Lobby.css";
 import HostedRooms from "../../components/HostedRooms/HostedRooms";
 
 const Lobby = () => {
-  const {user} = useContext(AuthContext)
+  const { user } = useContext(AuthContext);
 
   return (
     <div>
       {user && (
         <div>
           <div className="lobby page">
-            <HostedRooms/>
+            <HostedRooms />
           </div>
         </div>
       )}

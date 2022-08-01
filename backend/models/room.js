@@ -3,16 +3,20 @@ const mongoose = require("mongoose");
 const roomSchema = new mongoose.Schema({
   id: {
     required: true,
-    type: String,
+    type: String
   },
   //added idea of host
   host: {
     required: false,
     type: String
-  }, 
+  },
   name: {
     required: true,
     type: String
+  },
+  whitelistedUsers: {
+    required: true,
+    type: Array
   }
 });
 

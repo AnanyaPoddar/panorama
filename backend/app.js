@@ -11,6 +11,7 @@ const passport = require("passport");
 const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const fetch = require("node-fetch");
 
 const port = 5000;
 
@@ -59,6 +60,9 @@ const rooms = require("./models/room.js");
 const token = require("./models/token.js");
 const crypto = require("crypto");
 const user = require("./models/user");
+
+// in-memory storage for access tokens
+const accessTokens = {};
 
 mongoose.connect(mongoString);
 const database = mongoose.connection;
@@ -175,6 +179,25 @@ app.get("/api/room/:roomId/participants", (req, res) => {
     });
 });
 
+//Get all whitelisted users of a room
+app.get("/api/room/:roomId/whitelist", (req, res) => {
+  rooms.findOne({ id: req.params.roomId }, function(err, room) {
+    console.log(room);
+    if (err) return res.status(500).send(err);
+    if (room) {
+      if (!room.whitelistedUsers.includes(req.query.identity))
+        res.status(403).send(
+          JSON.stringify({
+            err: "Only whitelisted users can access this information"
+          })
+        );
+      else {
+        res.status(200).send(JSON.stringify({ room: room.whitelistedUsers }));
+      }
+    } else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
+  });
+});
+
 //end room, all connected participants will be disconnected; this is restricted to host of the room
 app.delete("/api/room/:roomId", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function(err, room) {
@@ -261,18 +284,18 @@ app.post("/api/room", (req, res) => {
   const identity = req.body.identity;
   console.log(identity);
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
-  rooms.create({ id: roomId, name: req.body.roomName }, function(
-    err2,
-    createdRoom
-  ) {
-    console.log(err2);
-    if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
-    users.findOne({ email: identity }, function(err, user) {
-      if (err) return res.status(500).send(JSON.stringify({ err: err }));
-      createdRoom.host = identity;
-      createdRoom.save();
-    });
-  });
+  rooms.create(
+    { id: roomId, name: req.body.roomName, whitelistedUsers: req.body.users },
+    function(err2, createdRoom) {
+      console.log(err2);
+      if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
+      users.findOne({ email: identity }, function(err, user) {
+        if (err) return res.status(500).send(JSON.stringify({ err: err }));
+        createdRoom.host = identity;
+        createdRoom.save();
+      });
+    }
+  );
   res.status(200).send(JSON.stringify({ id: roomId }));
 });
 
@@ -396,6 +419,14 @@ app.post("/api/login", (req, res) => {
   });
 });
 
+// get list of users
+app.get("/api/users", function(req, res, next) {
+  users.find({}, function(err, users) {
+    if (err) return res.status(500).json({ re: "server", message: err });
+    return res.status(200).send({ users: users });
+  });
+});
+
 // get room participants
 /*app.get("/api/room/:roomId/participants", (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, data) {
@@ -421,6 +452,8 @@ passport.use(
       scope: ["w_member_social", "r_emailaddress", "r_liteprofile"]
     },
     function(accessToken, refreshToken, profile, done) {
+      accessTokens[profile.id] = accessToken;
+      console.log(accessTokens);
       process.nextTick(function() {
         users
           .findOne({ isLinkedinUser: true, linkedinId: profile.id })
@@ -460,7 +493,7 @@ app.get(
   "/api/linkedin/auth/callback",
   passport.authenticate("linkedin", {
     successRedirect: "http://" + process.env.HOST + ":3000/signin",
-    failureRedirect: "/api/linkedin/auth/failure"
+    failureRedirect: "http://" + process.env.HOST + ":3000"
   })
 );
 
@@ -480,8 +513,6 @@ passport.deserializeUser(function(id, done) {
 
 // retrieve the user details for log in
 app.get("/api/linkedin/auth/success", (req, res) => {
-  console.log(req.user);
-
   if (!req.user) {
     return res.status(401).end("access denied");
   }
@@ -495,18 +526,193 @@ app.get("/api/linkedin/auth/success", (req, res) => {
   });
 });
 
-// redirect for authentication failure
-app.get("/api/linkedin/auth/failure", (req, res) => {
-  return res.send("Failed to authenticate..");
-});
-
 // clear out the session
 app.get("/api/logout", (req, res) => {
+  if (req.user && req.user.isLinkedinUser) {
+    delete accessTokens[req.user.linkedinId];
+  }
   req.logout(function(err) {
     if (err) {
       return next(err);
     }
     return res.status(200).send("logout is successful");
+  });
+});
+
+app.post("/api/invite", (req, res) => {
+  users.find({}, function(err, items) {
+    users.findOne({ email: req.body.userEmail }, function(err2, user) {
+      const linkedinUsers = user.isLinkedinUser
+        ? items.filter(
+            user => req.body.users.includes(user.email) && user.isLinkedinUser
+          )
+        : [];
+      const panoramaUsers = items.filter(
+        user => req.body.users.includes(user.email) && !user.isLinkedinUser
+      );
+
+      console.log(linkedinUsers);
+      console.log(panoramaUsers);
+
+      if (linkedinUsers.length) {
+        let totalLength = 0;
+        const annotations = [];
+        linkedinUsers.forEach(item => {
+          let currLength = item.firstname.length + item.lastname.length + 1;
+          totalLength += currLength + 1;
+          annotations.push({
+            entity: `urn:li:person:${item.linkedinId}`,
+            length: currLength,
+            start: totalLength - currLength - 1
+          });
+        });
+
+        let text = "";
+        linkedinUsers.forEach(item => {
+          text += `${item.firstname} ${item.lastname} `;
+        });
+        text +=
+          "Would you like to join me on a whiteboarding session on Panorama (panoramas.social)? Here's the room id: " +
+          req.body.roomID;
+        console.log(user);
+        fetch(`https://api.linkedin.com/v2/shares`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + accessTokens[user.linkedinId]
+          },
+          body: JSON.stringify({
+            distribution: {
+              linkedInDistributionTarget: {}
+            },
+            owner: "urn:li:person:TUfYYAUNVP",
+            subject: "Test Share Subject",
+            text: {
+              annotations: annotations,
+              text: text
+            }
+          })
+        })
+          .then(response => {
+            return response.json();
+          })
+          .then(json => {
+            console.log(json);
+          })
+          .catch(error => {
+            console.error("Error:", error);
+          });
+      }
+
+      panoramaUsers.forEach(item => {
+        const html = `<div>Hello ${item.firstname} ${item.lastname},<br/><br/>Would you like to join ${user.firstname} ${user.lastname} on a whiteboarding session on Panorama (<a href="panoramas.social">panoramas.social</a>)? Here's the room id: ${req.body.roomID}<br/><br/>Thank you,<br/><br/>Panorama Team<div>`;
+        console.log(html);
+        const mailData = {
+          from: process.env.EMAIL,
+          to: item.email,
+          subject: `${item.firstname} ${item.lastname} | Invitation to Panorama Session From`,
+          html: html
+        };
+
+        transporter.sendMail(mailData, (error, info) => {
+          if (error) {
+            return console.log(error);
+          }
+        });
+      });
+    });
+  });
+
+  return res.status(200).send({ message: "Invitations are sent" });
+});
+
+app.post("/api/linkedin/post", (req, res) => {
+  if (req.user && req.user.isLinkedinUser) {
+    console.log("hey");
+    users.find({ isLinkedinUser: true }, function(err, users) {
+      if (err) return res.status(500).end(err);
+
+      const match = users.filter(user => req.body.users.includes(user.email));
+
+      if (match.length) {
+        let totalLength = 0;
+        const annotations = [];
+        match.forEach(item => {
+          let currLength = item.firstname.length + item.lastname.length + 1;
+          totalLength += currLength + 1;
+          annotations.push({
+            entity: `urn:li:person:${item.linkedinId}`,
+            length: currLength,
+            start: totalLength - currLength - 1
+          });
+        });
+
+        let text = "";
+        match.forEach(item => {
+          text += `${item.firstname} ${item.lastname} `;
+        });
+        text +=
+          "Would you like to join me on a whiteboarding session on Panorama (panoramas.social)? Here's the room id: " +
+          req.body.roomID;
+
+        fetch(`https://api.linkedin.com/v2/shares`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + accessTokens[req.user.linkedinId]
+          },
+          body: JSON.stringify({
+            distribution: {
+              linkedInDistributionTarget: {}
+            },
+            owner: "urn:li:person:TUfYYAUNVP",
+            subject: "Test Share Subject",
+            text: {
+              annotations: annotations,
+              text: text
+            }
+          })
+        })
+          .then(response => {
+            return response.json();
+          })
+          .then(json => {
+            return res.status(200).send({ message: "Invitations are sent" });
+          })
+          .catch(error => {
+            console.error("Error:", error);
+          });
+      }
+    });
+  }
+});
+
+app.post("/api/email/invite", (req, res) => {
+  console.log(req.body.users);
+  users.find({ isLinkedinUser: false }, function(err, items) {
+    if (err) return res.status(500).end(err);
+
+    const match = items.filter(item => req.body.users.includes(item.email));
+    users.findOne({ email: req.body.userEmail }, function(err2, user) {
+      if (err2) return res.status(500).end(err2);
+      match.forEach(item => {
+        const html = `<div>Hello ${item.firstname} ${item.lastname},<br/><br/>Would you like to join ${user.firstname} ${user.lastname} on a whiteboarding session on Panorama (<a href="panoramas.social">panoramas.social</a>)? Here's the room id: ${req.body.roomID}<br/><br/>Thank you,<br/><br/>Panorama Team<div>`;
+        console.log(html);
+        const mailData = {
+          from: process.env.EMAIL,
+          to: item.email,
+          subject: `${item.firstname} ${item.lastname} | Invitation to Panorama Session From`,
+          html: html
+        };
+
+        transporter.sendMail(mailData, (error, info) => {
+          if (error) {
+            return console.log(error);
+          }
+        });
+      });
+      return res.status(200).send({ message: "Invitations are sent" });
+    });
   });
 });
 
