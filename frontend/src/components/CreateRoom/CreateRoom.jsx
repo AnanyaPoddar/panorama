@@ -36,8 +36,10 @@ const CreateRoom = () => {
       fetch(`http://localhost:5000/api/room`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Credentials": true
         },
+        credentials: "include",
         body: JSON.stringify({
           roomName: roomName,
           users: selected.concat([user.email])

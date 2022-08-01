@@ -38,13 +38,7 @@ const HostedRooms = () => {
       headers: {
         "Content-Type": "application/json"
       },
-<<<<<<< HEAD
-      body: JSON.stringify({
-        identity: user.email
-      })
-=======
-      credentials: "include",
->>>>>>> 132e54be64014f9f925da32e1e3d5fb8e93a932c
+      credentials: "include"
     })
       .then(res => {
         return res.json();
@@ -64,9 +58,9 @@ const HostedRooms = () => {
   const joinRoom = () => {
     console.log("testtttttttt");
     fetch(`http://localhost:5000/api/room/${currRoom}/completed`, {
-      credentials: "include",
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         //Go to room if it exists, otherwise set error to show it does not exist
         console.log("here we go");
         if (res.status === 200) {
@@ -77,7 +71,7 @@ const HostedRooms = () => {
           console.log("Room Not Found");
         }
       })
-      .catch((error) => console.log(error));
+      .catch(error => console.log(error));
   };
 
   return (
@@ -89,8 +83,8 @@ const HostedRooms = () => {
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
-            boxSizing: "border-box",
-          },
+            boxSizing: "border-box"
+          }
         }}
       >
         <Toolbar />
@@ -118,7 +112,7 @@ const HostedRooms = () => {
           color="primary"
           value={type}
           exclusive
-          onChange={(e) => setType(e.target.value)}
+          onChange={e => setType(e.target.value)}
         >
           <ToggleButton value="join">Join Room</ToggleButton>
           <ToggleButton value="create">Create Room</ToggleButton>
