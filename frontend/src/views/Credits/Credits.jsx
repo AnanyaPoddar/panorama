@@ -1,6 +1,13 @@
-import React from "react";
+import { useContext } from "react";
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+
+import { AuthContext } from "../../context/AuthProvider";
 
 const Credits = () => {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
   return (
     <div className="page">
       <h1>Credits</h1>
@@ -38,6 +45,15 @@ const Credits = () => {
           </a>
         </li>
       </ul>
+      {user ? (
+        <Button variant="contained" onClick={() => navigate("/lobby")}>
+          Back to Lobby
+        </Button>
+      ) : (
+        <Button variant="contained" onClick={() => navigate("/")}>
+          Back to Home
+        </Button>
+      )}
     </div>
   );
 };

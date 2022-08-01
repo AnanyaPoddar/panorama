@@ -1,7 +1,3 @@
-.page {
-  margin: 20px;
-}
-
 #signin {
   margin: 20px;
   padding: 80px;
@@ -14,4 +10,4 @@
 @font-face {
   font-family: Avenir;
   src: url(../../assets/fonts/AvenirLTStd-Roman.otf);
-} 
+}
