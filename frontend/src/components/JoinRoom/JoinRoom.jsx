@@ -19,7 +19,9 @@ const JoinRoom = () => {
 
   const joinRoom = (e) => {
     e.preventDefault();
-    fetch(`http://localhost:5000/api/room/${roomId}`).then((res) => {
+    fetch(`http://localhost:5000/api/room/${roomId}`, {
+      credentials: "include",
+    }).then((res) => {
       //Go to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
         navigate(`/room/${roomId}`);

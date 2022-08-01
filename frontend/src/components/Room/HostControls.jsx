@@ -20,9 +20,10 @@ const HostControls = ({ id }) => {
   //only available for the host, when they wish to end the call they must confirm
   const [openConfirmation, setOpenConfirmation] = useState(false);
 
-  //TODO: Change API call to not pass in identity through body
   const endCall = () => {
-    fetch(`http://localhost:5000/api/room/${id}/participants`)
+    fetch(`http://localhost:5000/api/room/${id}/participants`, {
+      credentials: "include",
+    })
     .then((res) => res.json())
     .then((json) => {
       console.log(json);
@@ -30,6 +31,7 @@ const HostControls = ({ id }) => {
     }).then( () => {
         fetch(`http://localhost:5000/api/room/${id}`, {
           method: "DELETE",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },

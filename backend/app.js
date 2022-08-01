@@ -23,7 +23,6 @@ const client = require("twilio")(
 const app = express();
 app.use(express.json());
 
-
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -35,15 +34,20 @@ app.use(
 //Again required for CORS
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header("Access-Control-Allow-Methods",'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
   res.header("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
 
 //middleware
 const isAuthenticated = function (req, res, next) {
-  if (!req.session.user)
+  if (!req.session.user) {
+    console.log("Access Denied");
     return res.status(401).json({ errors: "Access Denied" });
+  }
   next();
 };
 
@@ -66,9 +70,8 @@ const mongoString = process.env.DATABASE_URL;
 const users = require("./models/user");
 const rooms = require("./models/room.js");
 const token = require("./models/token.js");
-const crypto = require('crypto');
+const crypto = require("crypto");
 const user = require("./models/user");
-
 
 mongoose.connect(mongoString);
 const database = mongoose.connection;
@@ -89,14 +92,12 @@ app.use(
   })
 );
 
-
 //app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
-
 app.use(function (req, res, next) {
-  console.log("HTTP request", (req.session.user), req.method, req.url, req.body);
+  console.log("HTTP request", req.session.user, req.method, req.url, req.body);
   next();
 });
 
@@ -109,9 +110,8 @@ app.get("/api/user", function (req, res) {
   }
 });
 
-
 //Check if room exists and is in progress
-app.get("/api/room/:roomId", (req, res) => {
+app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
   console.log(req.params.roomId);
   client.video.v1
     .rooms(req.params.roomId)
@@ -123,31 +123,35 @@ app.get("/api/room/:roomId", (req, res) => {
 });
 
 // check completed rooms
-app.get("/api/room/:roomId/completed", (req, res) => {
+app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
   client.video.v1.rooms
-          .list({
-              status: 'completed'
+    .list({
+      status: "completed",
+    })
+    .then((rooms) => {
+      rooms.forEach((r) => {
+        if (r.uniqueName === req.params.roomId) {
+          client.video.v1
+            .rooms(r.sid)
+            .fetch()
+            .then((room) => {
+              res.status(200).send(JSON.stringify({ room: room }));
             })
-          .then(rooms => {
-            rooms.forEach(r => {
-            if (r.uniqueName===req.params.roomId) {
-              client.video.v1.rooms(r.sid)
-              .fetch()
-              .then((room) => {
-                res.status(200).send(JSON.stringify({ room: room }))
-              })
-              .catch(() => {
-                return res.status(404).send(JSON.stringify({ err: "Room not found" }));
-              });
-            }
+            .catch(() => {
+              return res
+                .status(404)
+                .send(JSON.stringify({ err: "Room not found" }));
             });
-          }).catch( () => {
-            return res.status(500).send(JSON.stringify({ err: "Error" }));
-          });
+        }
+      });
+    })
+    .catch(() => {
+      return res.status(500).send(JSON.stringify({ err: "Error" }));
+    });
 });
 
 //Get the host of an existing room
-app.get("/api/room/:roomId/host", (req, res) => {
+app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
@@ -157,7 +161,7 @@ app.get("/api/room/:roomId/host", (req, res) => {
 });
 
 //Get all participants of a room (in-progress or completed)
-app.get("/api/room/:roomId/participants", (req, res) => {
+app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
   const roomId = req.params.roomId;
 
   client.video.v1
@@ -178,12 +182,11 @@ app.get("/api/room/:roomId/participants", (req, res) => {
 });
 
 //end room, all connected participants will be disconnected; this is restricted to host of the room
-app.delete("/api/room/:roomId", (req, res) => {
+app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
-      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
-      if (room.host !== req.body.identity)
+      if (room.host !== req.session.user)
         res
           .status(403)
           .send(JSON.stringify({ err: "Only hosts can delete a room" }));
@@ -203,44 +206,47 @@ app.delete("/api/room/:roomId", (req, res) => {
 });
 
 //Remove participant from an in-progress room
-app.delete("/api/room/:roomId/participants/:participantName", (req, res) => {
-  const roomId = req.params.roomId;
-  const participant = req.params.participantName;
-  rooms.findOne({ id: req.params.roomId }, function (err, room) {
-    if (err) res.status(500).send(err);
-    if (room) {
-      //TODO: For security, do 2 checks: the room.host should match the hostname passed in from the frontend, and should also be equivalent to the identity of the current logged in user
-      if (room.host !== req.body.identity)
-        return res.status(403).send(
-          JSON.stringify({
-            err: "Only hosts can remove a participant from a room",
-          })
-        );
-      else {
-        client.video.v1
-          .rooms(roomId)
-          .participants(participant)
-          .update({ status: "disconnected" })
-          .then((p) => {
-            res.status(200).send(
-              JSON.stringify({
-                msg:
-                  "Removed participant " + participant + " with sid " + p.sid,
-              })
-            );
-          })
-          .catch((err) => {
-            res.status(500).send(JSON.stringify({ err: err }));
-          });
-      }
-    } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
-  });
-});
+app.delete(
+  "/api/room/:roomId/participants/:participantName",
+  isAuthenticated,
+  (req, res) => {
+    const roomId = req.params.roomId;
+    const participant = req.params.participantName;
+    rooms.findOne({ id: req.params.roomId }, function (err, room) {
+      if (err) res.status(500).send(err);
+      if (room) {
+        if (room.host !== req.session.user)
+          return res.status(403).send(
+            JSON.stringify({
+              err: "Only hosts can remove a participant from a room",
+            })
+          );
+        else {
+          client.video.v1
+            .rooms(roomId)
+            .participants(participant)
+            .update({ status: "disconnected" })
+            .then((p) => {
+              res.status(200).send(
+                JSON.stringify({
+                  msg:
+                    "Removed participant " + participant + " with sid " + p.sid,
+                })
+              );
+            })
+            .catch((err) => {
+              res.status(500).send(JSON.stringify({ err: err }));
+            });
+        }
+      } else res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    });
+  }
+);
 
 //Get token to access existing room
-app.post("/api/room/:roomId/token", (req, res) => {
+app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
   const roomId = req.params.roomId;
-  const identity = req.body.identity;
+  const identity = req.session.user;
   const token = getVideoToken(identity, roomId);
 
   rooms.findOne({ id: roomId }, function (err2, data) {
@@ -248,100 +254,109 @@ app.post("/api/room/:roomId/token", (req, res) => {
     if (data) {
       users.findOne({ email: identity }, function (err, user) {
         if (err) res.status(500).send(JSON.stringify({ err: err }));
-        if (!user) return res.status(401).json({err: "access denied"});
+        if (!user) return res.status(401).json({ err: "access denied" });
         data.save();
       });
-    }
-      else return res.status(404).send(JSON.stringify({ err: "Room not found" }));
+    } else
+      return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
   res.status(200).send(JSON.stringify({ token: token, id: roomId }));
 });
 
 //Returns unique identifier for room, and identity associated with the created room is the host
-app.post("/api/room", (req, res) => {
+app.post("/api/room", isAuthenticated, (req, res) => {
+  console.log("HERE");
   const roomId = uuid.v4();
-  const identity = req.body.identity;
+  const identity = req.session.user;
   console.log(identity);
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
-  rooms.create({ id: roomId, name: req.body.roomName}, function (err2, createdRoom) {
-    console.log(err2);
-    if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
-    users.findOne({ email: identity }, function (err, user) {
-      if (err) return res.status(500).send(JSON.stringify({ err: err }));
-      createdRoom.host = identity;
-      createdRoom.save();
-    });
-  });
+  rooms.create(
+    { id: roomId, name: req.body.roomName },
+    function (err2, createdRoom) {
+      console.log(err2);
+      if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
+      users.findOne({ email: identity }, function (err, user) {
+        if (err) return res.status(500).send(JSON.stringify({ err: err }));
+        createdRoom.host = identity;
+        createdRoom.save();
+      });
+    }
+  );
   res.status(200).send(JSON.stringify({ id: roomId }));
 });
 
 //Return all the rooms that a user is host of
-app.post("/api/room/hosted", (req, res) => {
-  const host = req.body.identity;
-  rooms.find({host: host}, function (err, hostedRooms) {
+app.post("/api/room/hosted", isAuthenticated, (req, res) => {
+  const host = req.session.user;
+  rooms.find({ host: host }, function (err, hostedRooms) {
     if (err) return res.status(500).send(err);
     const roomnames = [];
     const roomids = [];
-    hostedRooms.forEach(r => {
+    hostedRooms.forEach((r) => {
       roomnames.push(r.name);
-      roomids.push(r.id)
+      roomids.push(r.id);
     });
-    return res.status(200).json({names: roomnames, ids: roomids});
+    return res.status(200).json({ names: roomnames, ids: roomids });
   });
 });
-
 
 // sign up route
 app.post("/api/users", function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
-    return res.status(422).json({re: "email", message: "email is missing"});
+    return res.status(422).json({ re: "email", message: "email is missing" });
   if (!("password" in req.body))
-    return res.status(422).json({re: "password", message: "password is missing"}); // to do: all errors in .json
+    return res
+      .status(422)
+      .json({ re: "password", message: "password is missing" }); // to do: all errors in .json
 
   let password = req.body.password;
   let email = req.body.identity;
 
   // check to see if email is already in use
-  users.findOne(
-    { isLinkedinUser: false, email: email },
-    function (err3, user) {
-      if (err3) return res.status(500).json({re: "server", message: err3});
-      if (user) {
-        return res.status(409).json({re: "email", message: "an account with this email already exists"});
-      }
-      // hash the password
-      const saltRounds = 10;
-      bcrypt.hash(password, saltRounds, function (err, hash) {
-        // insert user
-        users.create(
-          {
-            isLinkedinUser: false,
-            password: hash,
-            email: email,
-            firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            dob: req.body.dob,
-            dp: null,
-            isVerified: false
-          },
-          function (err2, userCreated) {
-            if (err2) return res.status(500).json({err: err2});
-            req.session.user = userCreated.email;
-            return res.status(200).json({ message: "signup success", email: userCreated.email});
-          }
-        );
+  users.findOne({ isLinkedinUser: false, email: email }, function (err3, user) {
+    if (err3) return res.status(500).json({ re: "server", message: err3 });
+    if (user) {
+      return res.status(409).json({
+        re: "email",
+        message: "an account with this email already exists",
       });
     }
-  );
+    // hash the password
+    const saltRounds = 10;
+    bcrypt.hash(password, saltRounds, function (err, hash) {
+      // insert user
+      users.create(
+        {
+          isLinkedinUser: false,
+          password: hash,
+          email: email,
+          firstname: req.body.firstname,
+          lastname: req.body.lastname,
+          dob: req.body.dob,
+          dp: null,
+          isVerified: false,
+        },
+        function (err2, userCreated) {
+          if (err2) return res.status(500).json({ err: err2 });
+          req.session.user = userCreated.email;
+          return res
+            .status(200)
+            .json({ message: "signup success", email: userCreated.email });
+        }
+      );
+    });
+  });
 });
 
 // Login endpoint
 app.post("/api/login", (req, res) => {
   if (!("identity" in req.body))
-    return res.status(422).json({re: "email", message: "email is missing"});
+    return res.status(422).json({ re: "email", message: "email is missing" });
   if (!("password" in req.body))
-    return res.status(422).json({re: "password", message: "password is missing"});
+    return res
+      .status(422)
+      .json({ re: "password", message: "password is missing" });
 
   let identity = req.body.identity;
   let password = req.body.password;
@@ -350,13 +365,14 @@ app.post("/api/login", (req, res) => {
   users.findOne(
     { isLinkedinUser: false, email: identity },
     function (err, user) {
-      if (err) return res.status(500).json({error: err});
-      if (!user) return res.status(401).json({error: "access denied"});
-      if (!user.isVerified) return res.status(403).json({error: "email not verified"});
+      if (err) return res.status(500).json({ error: err });
+      if (!user) return res.status(401).json({ error: "access denied" });
+      if (!user.isVerified)
+        return res.status(403).json({ error: "email not verified" });
       let hash = user.password;
       bcrypt.compare(password, hash, function (err, result) {
         if (!result) {
-          return res.status(401).json({error: "access denied"});
+          return res.status(401).json({ error: "access denied" });
         }
         req.session.user = user.email;
         return res.status(200).json(user);
@@ -364,19 +380,6 @@ app.post("/api/login", (req, res) => {
     }
   );
 });
-
-// get room participants
-/*app.get("/api/room/:roomId/participants", (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function (err, data) {
-    if (err) return res.status(500).send(JSON.stringify({ err: err }));
-    return res.status(200).send(
-      JSON.stringify({
-        
-      })
-    );
-  });
-});*/
-
 // email verification
 
 // initialize linkedin strategy
@@ -404,7 +407,7 @@ passport.use(
                   linkedinId: profile.id,
                   email: profile.emails[0].value,
                   firstname: profile.name.givenName,
-                  lastname: profile.name.familyName
+                  lastname: profile.name.familyName,
                 },
                 function (err2, userCreated) {
                   if (err2) return res.status(500).end(err2);
@@ -504,48 +507,55 @@ app.post("/api/text-mail", function (req, res, next) {
     if (error) {
       return console.log(error);
     }
-    return res.status(200).send({ message: "Mail send", message_id: info.messageId });
+    return res
+      .status(200)
+      .send({ message: "Mail send", message_id: info.messageId });
   });
 });
 
-// verify email 
+// verify email
 app.get("/api/:userId/verify/:token", (req, res) => {
-  users.findOne({_id: req.params.userId}, function (err, found) {
-    if (err) return res.status(500).send({error: "server issue"});
+  users.findOne({ _id: req.params.userId }, function (err, found) {
+    if (err) return res.status(500).send({ error: "server issue" });
     if (!found) return res.status(400).send({ error: "Invalid link" });
-    token.findOne({user: found._id, token: req.params.token}, function (err2, tok) {
-      if (!tok) return res.status(400).send({ error: "Invalid link" });
-      found.isVerified=true;
-      found.save();
-    });
-    token.deleteOne({token: req.params.token}, function (err, tokfound) {
+    token.findOne(
+      { user: found._id, token: req.params.token },
+      function (err2, tok) {
+        if (!tok) return res.status(400).send({ error: "Invalid link" });
+        found.isVerified = true;
+        found.save();
+      }
+    );
+    token.deleteOne({ token: req.params.token }, function (err, tokfound) {
       if (!tokfound) return res.status(404).send({ error: "Invalid link" });
+      return res.status(200).send({ message: "Email verified successfully" });
     });
-    return res.status(200).send({ message: "Email verified successfully" });
   });
 });
-
 
 app.post("/api/verification-mail", (req, res) => {
-  users.findOne({email: req.body.identity}, function (err, userFound) {
-    if (err) return res.status(500).json({error: err});
-    if (!userFound) return res.status(404).json({error: "Not found"});
+  users.findOne({ email: req.body.identity }, function (err, userFound) {
+    if (err) return res.status(500).json({ error: err });
+    if (!userFound) return res.status(404).json({ error: "Not found" });
 
-    token.create({user: userFound._id, token: crypto.randomBytes(32).toString("hex")}, function (err, tok) {
-      const url = `http://localhost:3000/users/${userFound._id}/verify/${tok.token}`
-      const mailData = {
-        from: process.env.EMAIL,
-        to: userFound.email,
-        subject: "Panorama verification",
-        html: `Hello ${userFound.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`,
-      };
-    
-      transporter.sendMail(mailData, (error, info) => {
-        if (error) {
-          return res.status(500).json({error: error});
-        }
-      else return res.status(200).json({message: "Email sent"});
-      });
-    });
+    token.create(
+      { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
+      function (err, tok) {
+        const url = `http://localhost:3000/users/${userFound._id}/verify/${tok.token}`;
+        const mailData = {
+          from: process.env.EMAIL,
+          to: userFound.email,
+          subject: "Panorama verification",
+          html: `Hello ${userFound.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`,
+        };
+
+        transporter.sendMail(mailData, (error, info) => {
+          if (error) {
+            return res.status(500).json({ error: error });
+          }
+          return res.status(200).json({ message: "Email sent" });
+        });
+      }
+    );
   });
 });

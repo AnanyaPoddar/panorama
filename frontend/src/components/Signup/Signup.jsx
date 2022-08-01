@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, Input } from "@mui/material";
 import validator from 'validator';
 import "../../components/Form.css";
 import "./Signup.css";
@@ -19,6 +19,8 @@ function Signup() {
   const [firstname, setFname] = useState("");
   const [lastname, setLname] = useState("");
   const [dob, setDob] = useState("");
+  const [img, setImg] = useState(null);
+  const [newImg, setNewImg] = useState(null);
 
   const password2 = React.useRef(null);
   const password1 = React.useRef(null);
@@ -81,35 +83,30 @@ function Signup() {
       return;
     }
 
-    // check dob is at least 18 years ago
-    const now = new Date();
-    let eighteenago = new Date();
-    eighteenago.setFullYear(now.getFullYear() - 18);
-    if (!(validator.isBefore(dob, eighteenago.getFullYear()+"/"+ (eighteenago.getMonth()+1)+"/" + eighteenago.getDate()))) {
-      setErrorMessage("You must be at least 18 years old.");
-      return;
-    }
-
-    // check dob is after 1900
-    if (!(validator.isAfter(dob, "1900/01/01"))) {
-      setErrorMessage("This date is too far in the past.");
-      return;
-    }
-    
-
-
     setErrorMessage(null);
 
 
     const creds = { identity: email.toLowerCase().trim(), password: pass.trim(), firstname: firstname.trim(), lastname: lastname.trim(), dob: dob};
     console.log(creds);
+
+    let formdata = new FormData();
+    formdata.append("identity", email.toLowerCase().trim());
+    formdata.append("password", pass.trim());
+    formdata.append("firstname", firstname.trim());
+    formdata.append("lastname", lastname.trim());
+    formdata.append("dob", dob);
+    
+    if(newImg != null){
+      formdata.append("dp", newImg);
+    }
+    console.log(formdata);
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/users`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
-      body: JSON.stringify(creds),
+      body: formdata,
     })
       .then((res) => {
         if (res.status != 200) {
@@ -148,13 +145,29 @@ function Signup() {
         console.error("Error:", error);
       });
   };
+
+  const changeImage = (data) =>{
+    let fileName = data.target.value;
+    let extFile = fileName
+      .substr(fileName.lastIndexOf(".") + 1, fileName.length)
+      .toLowerCase();
+    if (!["gif", "png", "jpeg", "jpg"].includes(extFile)) {
+      setErrorMessage("File must be jpg/jpeg, or png");
+      return;
+    }
+    if (data.target.files[0].size / 1024 / 1024 > 5) {
+      setErrorMessage("File size exceeds 5mb");
+      return;
+    }
+    setImg(URL.createObjectURL(data.target.files[0]))
+    setNewImg(data.target.files[0])
+}
+
   return (
     <div>
       { page==1 ? ( 
         <div className="inner">
           <div className = "page-heading"> Get started in just a few simple steps. </div>
-          
-          <br />
           <form onSubmit={nextPage} className="form">
             {errorMessage && (
               <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
@@ -162,12 +175,13 @@ function Signup() {
             {success && (
               <p className="success"> {success} </p>
             )}
+            <br />
             <TextField
               variant="standard"
               placeholder="Enter email"
               inputRef={emailfield}
               value={email}
-              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
               onChange={e => setEmail(e.target.value)}
             />
             <br />
@@ -177,7 +191,7 @@ function Signup() {
               placeholder="Enter password"
               inputRef={password1}
               value={pass}
-              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
               onChange={e => setPass(e.target.value)}
             />
             <br />
@@ -187,7 +201,7 @@ function Signup() {
               inputRef={password2}
               placeholder="Confirm password"
               value={pass2}
-              inputProps={{style: {fontSize: 22, fontFamily: "Avenir"}}}
+              inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
               onChange={e => setPass2(e.target.value)}
             />
             <br />
@@ -234,6 +248,23 @@ function Signup() {
                   inputProps={{style: {fontSize: 25, fontFamily: "Avenir"}}}
                   onChange={e => setDob(e.target.value)}
                 />
+                <br />
+
+                <div id="previewtext">Add an optional profile picture:</div>
+                <img id="preview-dp" src={img}/>
+                <Button
+                  variant="contained"
+                  component="label"
+                >
+                  Upload File
+                  <input
+                    type="file"
+                    id="dp"
+                    accept="image/png, image/jpeg, image/jpg"
+                    hidden
+                    onChange={(data) =>{changeImage(data)}}
+                  />
+                </Button>
               <br />
               <div className="btns">
                 <div className="btn">
