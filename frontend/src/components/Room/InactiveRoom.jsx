@@ -1,4 +1,4 @@
-import { Alert, AlertTitle, Button } from "@mui/material";
+import { Alert, AlertTitle, Button, Fab } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
@@ -36,16 +36,16 @@ const InactiveRoom = () => {
     <div className="room page inactive">
       <Whiteboard roomId={id} />
       <div className="btn-group">
-        <Button
-          variant="contained"
+        <Fab
+          variant="extended"
           className="reactivate-btn"
           onClick={() => navigate(`/room/${id}`)}
         >
           Reactivate this Room
-        </Button>
-        <Button variant="contained" onClick={() => navigate("/lobby")}>
+        </Fab>
+        <Fab variant="extended" onClick={() => navigate("/lobby")}>
           Back to Lobby
-        </Button>
+        </Fab>
       </div>
       {!isHost && (
         <div className="page protected">

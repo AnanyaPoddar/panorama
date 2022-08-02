@@ -89,6 +89,7 @@ video {
   position: fixed;
   top: 100px;
   left: 20px;
+  z-index: 100000;
 }
 
 .room .btn-group > * {

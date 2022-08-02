@@ -19,8 +19,9 @@ const EmailVerification = () => {
             
             setValidUrl(true);
           }
-          
+          else { 
           setValidUrl(false);
+          }
           return res.json();
         })
         .then((json) => {
