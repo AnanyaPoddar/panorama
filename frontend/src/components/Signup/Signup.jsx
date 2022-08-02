@@ -124,6 +124,7 @@ function Signup() {
       })
       .then((json) => {
         // create worker and use it to send a verification email
+        setSuccess("Loading...");
         const worker = new WorkerBuilder(Worker);
         const emails = json.email;
         worker.postMessage({ emails });

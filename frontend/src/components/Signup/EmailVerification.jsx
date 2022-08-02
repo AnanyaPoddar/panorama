@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 
 const EmailVerification = () => {
   const [validUrl, setValidUrl] = useState(false);
+  const [loading, setLoading] = useState(true);
   const param = useParams();
 
   useEffect(() => {
@@ -15,10 +16,12 @@ const EmailVerification = () => {
         },
       })
         .then((res) => {
-          if (res.status === 200) {
+          setLoading(false);
+          if (res.status===200) {
             setValidUrl(true);
-          } else {
-            setValidUrl(false);
+          }
+          else { 
+          setValidUrl(false);
           }
           return res.json();
         })
@@ -26,6 +29,8 @@ const EmailVerification = () => {
           return;
         })
         .catch((err) => {
+          
+          setLoading(false);
           setValidUrl(false);
         });
     };
@@ -34,13 +39,21 @@ const EmailVerification = () => {
 
   return (
     <div>
-      {validUrl ? (
+      {loading ? (
         <div className="msg">
-          <h1>Email verified successfully. You may now close this tab.</h1>
+          <h1>Loading...</h1>
         </div>
-      ) : (
-        <h1>404 Not Found</h1>
+      ):(validUrl ? (
+          <div className="msg">
+            <h1>Email verified successfully. You may now close this tab.</h1>
+          </div>
+        ) : (
+          <div className="msg">
+            <h1>404 Not Found</h1>
+          </div>
+        )
       )}
+        
     </div>
   );
 };
