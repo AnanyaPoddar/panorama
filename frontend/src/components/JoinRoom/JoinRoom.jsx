@@ -15,23 +15,23 @@ const JoinRoom = () => {
   const navigate = useNavigate();
 
   //passed to Room so that if the local participant leaves, this can be set to null, or vice versa
-  const changeRoom = room => {
+  const changeRoom = (room) => {
     setRoom(room);
   };
 
-  const joinRoom = e => {
+  const joinRoom = (e) => {
     e.preventDefault();
     fetch(`http://localhost:5000/api/room/${roomId}`, {
-      credentials: "include"
-    }).then(res => {
+      credentials: "include",
+    }).then((res) => {
       //Go to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
         fetch(
           `http://localhost:5000/api/room/${roomId}/whitelist?` +
             new URLSearchParams({
-              identity: user.email
+              identity: user.email,
             })
-        ).then(res2 => {
+        ).then((res2) => {
           if (res2.status === 200) {
             navigate(`/room/${roomId}`);
           } else {
@@ -56,7 +56,7 @@ const JoinRoom = () => {
               fullWidth
               placeholder="Room ID"
               value={roomId}
-              onChange={e => setRoomId(e.target.value)}
+              onChange={(e) => setRoomId(e.target.value)}
             ></TextField>
           </div>
 

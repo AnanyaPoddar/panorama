@@ -3,7 +3,6 @@ export default () => {
     const { fileData, id } = e.data;
     const fileUrl = fileData.url;
     const fileName = fileData.name;
-    console.log(fileUrl, fileName);
 
     fetch(`http://localhost:5000/api/room/summary/${id}`, {
       method: "GET",
@@ -16,20 +15,19 @@ export default () => {
         return res.json();
       })
       .then((summaryInfo) => {
-        console.log(summaryInfo);
         // parse the info and format it into html
 
-        let html = `<div> Call participants: ${summaryInfo.participants.toString()} <br\> Call duration: ${summaryInfo.duration}<br/>`;
+        let html = `<div> Call participants: ${summaryInfo.participants.toString()} <br\> Call duration: ${
+          summaryInfo.duration
+        }<br/>`;
 
         if (fileName != "none") {
-          const fileHtml =
-            `The host has included the following file for future reference: ${fileName}
+          const fileHtml = `The host has included the following file for future reference: ${fileName}
             <br/> You can download it <a href=${fileUrl}> here</a>.`;
-            html = html + fileHtml;
+          html = html + fileHtml;
         }
 
         html = html + "</div>";
-
 
         fetch(`http://localhost:5000/api/text-mail`, {
           method: "POST",

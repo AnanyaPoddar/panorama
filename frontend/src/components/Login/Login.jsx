@@ -22,11 +22,11 @@ function Login() {
     //Prevent page reload
     e.preventDefault();
 
-    if (!(validator.isEmail(email))) {
+    if (!validator.isEmail(email)) {
       setErrorMessage("Enter a valid email");
       return;
     }
-    if (pass==="") {
+    if (pass === "") {
       setErrorMessage("Missing password");
       return;
     }
@@ -42,16 +42,16 @@ function Login() {
       body: JSON.stringify(creds),
     })
       .then((response) => {
-        if (response.status==401) {
+        if (response.status == 401) {
           setErrorMessage("Invalid credentials");
-        } else if (response.status===403) {
+        } else if (response.status === 403) {
           setErrorMessage("Email not verified");
         } else {
-        return response.json();
+          return response.json();
         }
       })
       //TODO: Possibly check status is ok before rendering
-      .then(json => {
+      .then((json) => {
         if (json) {
           setUser({ email: json.email });
           navigate("/lobby");
@@ -63,19 +63,23 @@ function Login() {
   };
 
   return (
-    <div className= "inner">
-      <div className = "page-heading"> Welcome back! </div><div class="page-heading">Log in to get started. </div>
+    <div className="inner">
+      <div className="page-heading"> Welcome back! </div>
+      <div className="page-heading">Log in to get started. </div>
       <form onSubmit={handleSubmit} className="form">
-      <br />
-      {errorMessage && (
-                <p className="error" > <img className="errorIcon" src={errorIcon}></img> {errorMessage} </p>
+        <br />
+        {errorMessage && (
+          <p className="error">
+            {" "}
+            <img className="errorIcon" src={errorIcon}></img> {errorMessage}{" "}
+          </p>
         )}
 
         <TextField
           variant="standard"
           placeholder="Enter email"
           value={email}
-          inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
+          inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
           onChange={(e) => setEmail(e.target.value.trim())}
         />
         <br />
@@ -84,7 +88,7 @@ function Login() {
           type="password"
           placeholder="Enter password"
           value={pass}
-          inputProps={{style: {fontSize: 20, fontFamily: "Avenir"}}}
+          inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
           onChange={(e) => setPass(e.target.value)}
         />
         <br />

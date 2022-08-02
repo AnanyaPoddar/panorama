@@ -29,7 +29,7 @@ const Navbar = () => {
       })
         .then((res) => res.json())
         .then((json) => setProfilePic(json.image))
-        .catch((err) => console.log(err));
+        .catch((err) => console.error(err));
     } else setLoggedIn(false);
   }, [user]);
 
@@ -78,7 +78,7 @@ const Navbar = () => {
             <Button variant="raised" onClick={() => navigate("/credits")}>
               Credits
             </Button>
-            {loggedIn && user? (
+            {loggedIn && user ? (
               <>
                 <IconButton sx={{ p: 0 }}>
                   <Avatar alt={user.email} src={profilePic} />

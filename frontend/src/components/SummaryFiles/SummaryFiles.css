@@ -1,16 +1,15 @@
 .inner {
   text-align: center;
-    display: flex;
-    padding-right: 10%;
-    padding-left: 10%;
-    font-size: 30px;
-    font-family: 'Avenir', 'Franklin Gothic', Arial, sans-serif;
-    flex-direction: column;
-    align-content: center;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  padding-right: 10%;
+  padding-left: 10%;
+  font-size: 30px;
+  font-family: "Avenir", "Franklin Gothic", Arial, sans-serif;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
 }
-
 
 .error {
   font-size: 20px;

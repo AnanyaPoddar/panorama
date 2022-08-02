@@ -15,7 +15,6 @@ video {
   border-width: 0px;
   height: auto;
   object-fit: fill;
-  
 }
 #bgvid {
   position: fixed;
@@ -82,4 +81,4 @@ video {
 @font-face {
   font-family: Avenir;
   src: url(../../assets/fonts/AvenirLTStd-Roman.otf);
-} 
+}

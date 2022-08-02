@@ -21,12 +21,15 @@ function App() {
             <Route path="/room/:id" element={<Room />} />
             <Route path="/room/inactive/:id" element={<InactiveRoom />} />
             <Route path="/lobby" element={<Lobby />} />
+            <Route path="/room/summary/:id" element={<SummaryFiles />} />
           </Route>
-          <Route path="/room/summary/:id" element={<SummaryFiles/>} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/" element={<Home />} />
           <Route path="/credits" element={<Credits />} />
-          <Route path="/users/:id/verify/:token" element={<EmailVerification />} />
+          <Route
+            path="/users/:id/verify/:token"
+            element={<EmailVerification />}
+          />
         </Routes>
       </BrowserRouter>
     </>

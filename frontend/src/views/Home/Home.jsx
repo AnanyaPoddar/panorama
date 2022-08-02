@@ -9,13 +9,9 @@ const Home = () => {
   return (
     <div className="page" id="home">
       <div id="bgvid">
-      <video autoPlay muted>
-        <source
-          src={video}
-          type="video/mp4"
-        />
-      </video>
-        
+        <video autoPlay muted>
+          <source src={video} type="video/mp4" />
+        </video>
       </div>
       <h1 id="title">
         Welcome to <span className="emphasis">Panorama</span>

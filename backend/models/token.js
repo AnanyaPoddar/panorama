@@ -4,12 +4,12 @@ const tokenSchema = new mongoose.Schema({
   user: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   token: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Tokens", tokenSchema);

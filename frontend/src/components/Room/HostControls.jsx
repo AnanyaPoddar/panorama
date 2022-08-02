@@ -11,7 +11,6 @@ import {
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
 
-
 import WorkerBuilder from "../CallSummary/WorkerBuilder";
 import Worker from "../CallSummary/verificationWorker";
 import { TDExportType } from "@tldraw/tldraw";
@@ -26,10 +25,9 @@ const HostControls = ({ id }) => {
     fetch(`http://localhost:5000/api/room/${id}/participants`, {
       credentials: "include",
     })
-    .then((res) => res.json())
-    .then((json) => {
-      ;
-    }).then( () => {
+      .then((res) => res.json())
+      .then((json) => {})
+      .then(() => {
         fetch(`http://localhost:5000/api/room/${id}`, {
           method: "DELETE",
           credentials: "include",
@@ -42,10 +40,10 @@ const HostControls = ({ id }) => {
         }).then((res) => {
           //only export the image if the call was successfully ended
           if (res.status === 200) {
-            console.log("call ended");
+            return;
           }
         });
-    });
+      });
   };
 
   return (

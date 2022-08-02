@@ -16,11 +16,11 @@ const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const [selected, setSelected] = useState("");
 
-  const changeRoom = room => {
+  const changeRoom = (room) => {
     setRoom(room);
   };
 
-  const createRoom = e => {
+  const createRoom = (e) => {
     e.preventDefault();
     let confirm = true;
     if (!selected.length) {
@@ -36,87 +36,49 @@ const CreateRoom = () => {
       fetch(`http://localhost:5000/api/room`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
           roomName: roomName,
-          users: selected.concat([user.email])
-        })
+          users: selected.concat([user.email]),
+        }),
       })
-        .then(res => {
+        .then((res) => {
           return res.json();
         })
-        .then(json => {
+        .then((json) => {
           setRoomId(json.id);
           fetch(`http://localhost:5000/api/invite`, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               users: selected,
               roomID: json.id,
-              userEmail: user.email
-            })
+              userEmail: user.email,
+            }),
           })
-            .then(res => {
+            .then((res) => {
               return res.json();
             })
-            .then(json => {
-              console.log(json);
+            .then((json) => {
+              return;
             })
-            .catch(err => console.log(err));
-          // fetch(`http://localhost:5000/api/linkedin/post`, {
-          //   method: "POST",
-          //   headers: {
-          //     "Content-Type": "application/json",
-          //     "Access-Control-Allow-Credentials": true
-          //   },
-          //   credentials: "include",
-          //   body: JSON.stringify({
-          //     users: selected,
-          //     roomID: json.id
-          //   })
-          // })
-          //   .then(res => {
-          //     return res.json();
-          //   })
-          //   .then(json => {
-          //     console.log(json);
-          //   })
-          //   .catch(err => console.log(err));
-
-          // fetch(`http://localhost:5000/api/email/invite`, {
-          //   method: "POST",
-          //   headers: {
-          //     "Content-Type": "application/json"
-          //   },
-          //   body: JSON.stringify({
-          //     users: selected,
-          //     roomID: json.id,
-          //     userEmail: user.email
-          //   })
-          // })
-          //   .then(res => {
-          //     return res.json();
-          //   })
-          //   .then(json => {
-          //     console.log(json);
-          //   })
-          //   .catch(err => console.log(err));
+            .catch((err) => console.error(err));
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.error(err));
     }
   };
 
   //redirect to room
-  const joinRoom = e => {
+  const joinRoom = (e) => {
     e.preventDefault();
     navigate(`/room/${roomId}`);
   };
 
-  const updateSelected = users => {
+  const updateSelected = (users) => {
     setSelected(users);
   };
 
@@ -130,7 +92,7 @@ const CreateRoom = () => {
             placeholder="Room name"
             required
             value={roomName}
-            onChange={e => setRoomName(e.target.value)}
+            onChange={(e) => setRoomName(e.target.value)}
           />
         </div>
 

@@ -10,6 +10,11 @@
 
 .options {
   position: absolute;
+  right: 120px;
+  bottom: 20px;
+}
+.help {
+  position: absolute;
   right: 30px;
   bottom: 20px;
 }
@@ -43,4 +48,13 @@
   width: 100%;
   margin-left: 0;
   left: 0;
+}
+
+.helpbox {
+  text-align: center;
+}
+
+.helptext {
+  padding: 20px;
+  padding-top: 0px;
 }

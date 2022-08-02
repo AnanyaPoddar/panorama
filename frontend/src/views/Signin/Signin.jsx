@@ -30,7 +30,6 @@ const Signin = () => {
           throw new Error("authentication has been failed!");
         })
         .then((json) => {
-          console.log(json);
           setUser({ email: json.email });
           navigate("/lobby");
         })

@@ -1,22 +1,56 @@
-import * as React from 'react';
+import * as React from "react";
 import { Tldraw, TldrawApp, TDExport, TDExportType } from "@tldraw/tldraw";
 import { useMultiplayerState } from "./useMultiplayerState";
 import { useEffect, useState, useCallback, useContext } from "react";
-import Fab from '@mui/material/Fab';
+import Fab from "@mui/material/Fab";
 import "./Whiteboard.css";
-import DialogTitle from '@mui/material/DialogTitle';
-import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import { IconButton } from '@mui/material';
-import mindmap from "../../assets/mindmap.png"
-import kanban from "../../assets/kanban.png"
+import DialogTitle from "@mui/material/DialogTitle";
+import Dialog from "@mui/material/Dialog";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import { IconButton } from "@mui/material";
+import mindmap from "../../assets/mindmap.png";
+import kanban from "../../assets/kanban.png";
 import { mindmapTemplate } from "../../assets/mindmap.jsx";
 import { kanbanTemplate } from "../../assets/kanban.jsx";
-import AddIcon from '@mui/icons-material/Add';
+import AddIcon from "@mui/icons-material/Add";
 
 import { AuthContext } from "../../context/AuthProvider";
+
+function HelpDialog(props) {
+  const { onClose, open } = props;
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  return (
+    <Dialog
+      className="helpbox"
+      onClick={handleClose}
+      onClose={handleClose}
+      open={open}
+    >
+      <DialogTitle>Whiteboard Controls</DialogTitle>
+      <div className="helptext">
+        Use the tools in the bottom toolbar to add components to the whiteboard.
+        To change the line colour or fill of a component, use the options in
+        "Styles".
+        <br />
+        <br />
+        Controls may differ depending on the device you are using.
+        <br />
+        To pan around the whiteboard: spacebar + drag OR trackpad scroll
+        <br />
+        To zoom in / out: mouse scroll wheel OR trackpad pinch
+        <br />
+        <br />
+        <em>Click anywhere to go back</em>
+      </div>
+    </Dialog>
+  );
+}
 
 function SimpleDialog(props) {
   const { onClose, template, open } = props;
@@ -32,38 +66,49 @@ function SimpleDialog(props) {
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Select Template</DialogTitle>
       <div className="cards">
-        <Card className="card" sx={{ maxWidth: 345 }} onClick={() => handleListItemClick("mindmap")}>
-          <CardMedia className="cardmedia"
+        <Card
+          className="card"
+          sx={{ maxWidth: 345 }}
+          onClick={() => handleListItemClick("mindmap")}
+        >
+          <CardMedia
+            className="cardmedia"
             component="img"
             height="140"
             width="140"
             image={mindmap}
             alt="mindmap"
           />
-          <CardContent>
-            Mindmap
-          </CardContent>
+          <CardContent>Mindmap</CardContent>
         </Card>
-        <Card className="card" sx={{ maxWidth: 345 }} onClick={() => handleListItemClick("kanban")}>
-          <CardMedia className="cardmedia"
+        <Card
+          className="card"
+          sx={{ maxWidth: 345 }}
+          onClick={() => handleListItemClick("kanban")}
+        >
+          <CardMedia
+            className="cardmedia"
             component="img"
             height="140"
             width="140"
             image={kanban}
             alt="kanban"
           />
-          <CardContent>
-            Kanban Board
-          </CardContent>
+          <CardContent>Kanban Board</CardContent>
         </Card>
 
-        <Card className="card" sx={{ maxWidth: 345 }} onClick={() => handleListItemClick("new")}>
+        <Card
+          className="card"
+          sx={{ maxWidth: 345 }}
+          onClick={() => handleListItemClick("new")}
+        >
           <CardMedia className="addicon cardmedia">
-            <AddIcon className="add-icon" style={{fill: '#6a736e', height: 100, width: 100}}/>
+            <AddIcon
+              className="add-icon"
+              style={{ fill: "#6a736e", height: 100, width: 100 }}
+            />
           </CardMedia>
-          <CardContent>
-            Start Fresh
-          </CardContent>
+          <CardContent>Start Fresh</CardContent>
         </Card>
       </div>
     </Dialog>
@@ -73,12 +118,12 @@ function SimpleDialog(props) {
 const Whiteboard = ({ roomId }) => {
   const { app, onMount, ...events } = useMultiplayerState(roomId);
   let [wbMount, setwbMount] = useState(null);
-  const [open, setOpen] = React.useState(false);       // only open for host for only new rooms,
+  const [open, setOpen] = React.useState(false); // only open for host for only new rooms,
+  const [helpOpen, setHelp] = React.useState(false);
   const [choseTemplate, setChoseTemplate] = React.useState(false);
-  const [template, setTemplate] = React.useState(null)
+  const [template, setTemplate] = React.useState(null);
   const [host, setHost] = useState("");
   const { user } = useContext(AuthContext);
-
 
   useEffect(() => {
     // set the host
@@ -89,37 +134,36 @@ const Whiteboard = ({ roomId }) => {
         return res.json();
       })
       .then((json) => {
-        if (user.email===json.host) {
+        if (user.email === json.host) {
           fetch(`http://localhost:5000/api/room/${roomId}/completed`, {
             credentials: "include",
-          })
-          .then((res) => {
-            console.log(res.status);
+          }).then((res) => {
             if (res.status == 200) {
-              setOpen(false)
+              setOpen(false);
               return res.json();
-            }
-            else if (res.status==404) {
+            } else if (res.status == 404) {
               setOpen(true);
             }
-          })
+          });
         }
       })
-    .catch((err) => console.log(err));
+      .catch((err) => console.error(err));
   }, []);
 
   const handleClose = (value) => {
     setOpen(false);
-    if (value=="mindmap") {
+    if (value == "mindmap") {
       setTemplate(mindmapTemplate);
-    }
-    else if (value=="kanban") {
+    } else if (value == "kanban") {
       setTemplate(kanbanTemplate);
       setChoseTemplate(true);
-    }
-    else {
+    } else {
       setTemplate(null);
     }
+  };
+
+  const handleHelpClose = () => {
+    setHelp(false);
   };
 
   useEffect(() => {
@@ -127,42 +171,43 @@ const Whiteboard = ({ roomId }) => {
   });
 
   const handleExport = () => {
-    app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 })
-  }
+    app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 });
+  };
 
-  console.log(template);
   const mydoc = template;
   if (mydoc) {
-    mydoc.id=roomId;
+    mydoc.id = roomId;
   }
 
-  console.log(mydoc);
   return (
     <div>
       {wbMount != null ? (
         <div>
-          {template==null ? (
+          {template == null ? (
             <Tldraw
-            showMenu={false}
-            showMultiplayerMenu={false}
-            showPages={false}
-            onMount={onMount}
-            id = {roomId}
-            {...events}
-          />
+              showMenu={false}
+              showMultiplayerMenu={false}
+              showPages={false}
+              onMount={onMount}
+              id={roomId}
+              {...events}
+            />
           ) : (
             <Tldraw
-            document={mydoc}
-            showMenu={false}
-            showMultiplayerMenu={false}
-            showPages={false}
-            onMount={onMount}
-            {...events}
-          />
-          )} 
-          
+              document={mydoc}
+              showMenu={false}
+              showMultiplayerMenu={false}
+              showPages={false}
+              onMount={onMount}
+              {...events}
+            />
+          )}
+
           <div className="options">
-            <Fab variant="extended" onClick={() => handleExport()}> Export</Fab> 
+            <Fab variant="extended" onClick={() => handleExport()}>
+              {" "}
+              Export
+            </Fab>
           </div>
           <div className="dialog">
             <SimpleDialog
@@ -171,13 +216,21 @@ const Whiteboard = ({ roomId }) => {
               onClose={handleClose}
             />
           </div>
+          <div className="help">
+            <Fab variant="extended" onClick={() => setHelp(true)}>
+              {" "}
+              Help
+            </Fab>
+          </div>
+          <div className="dialog">
+            <HelpDialog open={helpOpen} onClose={handleHelpClose} />
+          </div>
         </div>
       ) : (
         <h1>Loading...</h1>
       )}
     </div>
   );
-  
 };
 
 export default Whiteboard;

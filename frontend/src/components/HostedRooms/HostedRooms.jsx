@@ -31,47 +31,35 @@ const HostedRooms = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   // check for rooms that user is host of
-  console.log(user.email);
   useEffect(() => {
     fetch(`http://localhost:5000/api/room/hosted`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(json => {
-        console.log(json);
+      .then((json) => {
         setRooms(json.names);
         setRoomIds(json.ids);
-        console.log("HERE");
-        console.log(rooms);
-        console.log(ids);
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.error(err));
   }, []);
-  console.log("THIS IS CURRENT ROOM " + currRoom);
 
   const joinRoom = () => {
-    console.log("testtttttttt");
     fetch(`http://localhost:5000/api/room/${currRoom}/completed`, {
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
+      .then((res) => {
         //Go to room if it exists, otherwise set error to show it does not exist
-        console.log("here we go");
         if (res.status === 200) {
-          console.log("HERE");
           navigate(`/room/inactive/${currRoom}`);
-        } else {
-          //TODO: Set appropriate error, may not just be 404
-          console.log("Room Not Found");
         }
       })
-      .catch(error => console.log(error));
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -83,8 +71,8 @@ const HostedRooms = () => {
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
-            boxSizing: "border-box"
-          }
+            boxSizing: "border-box",
+          },
         }}
       >
         <Toolbar />
@@ -112,7 +100,7 @@ const HostedRooms = () => {
           color="primary"
           value={type}
           exclusive
-          onChange={e => setType(e.target.value)}
+          onChange={(e) => setType(e.target.value)}
         >
           <ToggleButton value="join">Join Room</ToggleButton>
           <ToggleButton value="create">Create Room</ToggleButton>

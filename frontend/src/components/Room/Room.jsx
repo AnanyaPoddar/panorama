@@ -7,7 +7,7 @@ import {
   Snackbar,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams, Navigate } from "react-router-dom";
@@ -48,13 +48,13 @@ const Room = () => {
   const [alertMsg, setAlertMsg] = useState("");
 
   //pass to LocalControls to change state from child to parent
-  const changeVideoOn = val => {
+  const changeVideoOn = (val) => {
     setVideoOn(val);
   };
-  const changeAudioOn = val => {
+  const changeAudioOn = (val) => {
     setAudioOn(val);
   };
-  const changeRoom = val => {
+  const changeRoom = (val) => {
     setRoom(val);
   };
 
@@ -64,48 +64,46 @@ const Room = () => {
       method: "POST",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(json => {
-        console.log(json);
-
+      .then((json) => {
         connectToRoom(json.token);
       })
-      .catch(err => setError(err));
+      .catch((err) => setError(err));
   }, []);
 
   //A user can only connect to a room if they receive a valid token to access that room, hence "room" will always be null unless a user has a valid grant to a room
-  const connectToRoom = token => {
+  const connectToRoom = (token) => {
     connect(token, { name: id })
-      .then(newRoom => {
+      .then((newRoom) => {
         setRoom(newRoom);
       })
       //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
         fetch(`http://localhost:5000/api/room/${id}/host`, {
-          credentials: "include"
+          credentials: "include",
         })
-          .then(res => {
+          .then((res) => {
             return res.json();
           })
-          .then(json => {
+          .then((json) => {
             setHost(json.host);
           })
       )
-      .catch(err => console.log(err));
+      .catch((err) => console.error(err));
   };
 
   useEffect(() => {
-    const addParticipant = participant => {
-      setRemoteParticipants(prev => [...prev, participant]);
+    const addParticipant = (participant) => {
+      setRemoteParticipants((prev) => [...prev, participant]);
     };
-    const removeParticipant = participant => {
+    const removeParticipant = (participant) => {
       participant.removeAllListeners();
-      setRemoteParticipants(prev => prev.filter(p => p !== participant));
+      setRemoteParticipants((prev) => prev.filter((p) => p !== participant));
     };
     if (room) {
       room.participants.forEach(addParticipant);
@@ -147,7 +145,7 @@ const Room = () => {
     }
   }, [room]);
 
-  const renderRemoteParticipants = remoteParticipants.map(participant => (
+  const renderRemoteParticipants = remoteParticipants.map((participant) => (
     <Participant
       key={participant.sid}
       participant={participant}
@@ -156,25 +154,25 @@ const Room = () => {
     />
   ));
 
-  const kickParticipant = participant => {
+  const kickParticipant = (participant) => {
     //TODO: Handle errors
     fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
+      .then((res) => {
         if (res.status === 200) {
           setOpenKickedNotif(true);
           renderSuccessfulKick(participant);
         }
       })
-      .catch(err => setError(err));
+      .catch((err) => setError(err));
   };
 
-  const renderSuccessfulKick = participant => {
+  const renderSuccessfulKick = (participant) => {
     //flash the "kicked participant out" notif for 3 seconds
     setTimeout(() => {
       setOpenKickedNotif(false);
@@ -185,7 +183,7 @@ const Room = () => {
         autoHideDuration={4000}
         anchorOrigin={{
           vertical: "bottom",
-          horizontal: "right"
+          horizontal: "right",
         }}
       >
         <Alert severity="success">
@@ -207,7 +205,7 @@ const Room = () => {
               color="primary"
               value={collapsibleContent}
               exclusive
-              onChange={e => setCollapsibleContent(e.target.value)}
+              onChange={(e) => setCollapsibleContent(e.target.value)}
             >
               <ToggleButton value="vid">Videos</ToggleButton>
               <ToggleButton value="metadata">Metadata</ToggleButton>
@@ -237,7 +235,7 @@ const Room = () => {
                 <div className="participant-list">
                   {/* Only allow hosts to kick participants out */}
                   {host !== "" && host === user.email
-                    ? remoteParticipants.map(participant => (
+                    ? remoteParticipants.map((participant) => (
                         <div className="participant-in-list">
                           <p>{participant.identity}</p>
                           <Button
@@ -251,7 +249,7 @@ const Room = () => {
                           </Button>
                         </div>
                       ))
-                    : remoteParticipants.map(participant => (
+                    : remoteParticipants.map((participant) => (
                         <p>{participant.identity}</p>
                       ))}
                 </div>
