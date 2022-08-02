@@ -47,7 +47,7 @@ app.use(function(req, res, next) {
 
 //middleware
 const isAuthenticated = function(req, res, next) {
-  console.log(!req.user);
+  console.log(req.user);
   if (!req.session.user && !req.user) {
     console.log("Access Denied");
     return res.status(401).json({ errors: "Access Denied" });
@@ -300,6 +300,7 @@ app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
         if (!user) return res.status(401).json({ err: "access denied" });
         data.save();
       });
+      // return res.status(200).send(JSON.stringify({ token: token, id: roomId }));
     } else
       return res.status(404).send(JSON.stringify({ err: "Room not found" }));
   });
@@ -625,6 +626,7 @@ app.get("/api/linkedin/auth/success", (req, res) => {
   if (!req.user) {
     return res.status(401).end("access denied");
   }
+  req.session.user = req.user.email;
   users.findOne({ isLinkedinUser: true, _id: req.user._id }, function(
     err,
     user
