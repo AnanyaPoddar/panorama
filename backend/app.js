@@ -47,8 +47,7 @@ app.use(function(req, res, next) {
 
 //middleware
 const isAuthenticated = function(req, res, next) {
-  console.log(req.user);
-  if (!req.session.user && !req.user) {
+  if (!req.session.user) {
     console.log("Access Denied");
     return res.status(401).json({ errors: "Access Denied" });
   }
