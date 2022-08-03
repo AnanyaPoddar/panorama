@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: ["https://panoramas.social", "https://api.panoramas.social"],
-    methods: "GET,POST,PUT,DELETE, PATCH",
+    methods: "GET,POST,PUT,DELETE, PATCH, OPTIONS",
     credentials: true,
   })
 );
