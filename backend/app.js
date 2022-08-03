@@ -886,7 +886,7 @@ app.post("/api/verification-mail", (req, res) => {
     token.create(
       { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
       function (err, tok) {
-        const url = `https://panoramas.social/users/${userFound._id}/verify/${tok.token}`;
+        const url = `https://panoramas.social/#/users/${userFound._id}/verify/${tok.token}`;
         const mailData = {
           from: process.env.EMAIL,
           to: userFound.email,
