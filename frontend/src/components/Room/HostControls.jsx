@@ -6,7 +6,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Tooltip,
+  Tooltip
 } from "@mui/material";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
@@ -22,22 +22,22 @@ const HostControls = ({ id }) => {
   const [openConfirmation, setOpenConfirmation] = useState(false);
 
   const endCall = () => {
-    fetch(`http://localhost:5000/api/room/${id}/participants`, {
-      credentials: "include",
+    fetch(`https://api.panoramas.social/api/room/${id}/participants`, {
+      credentials: "include"
     })
-      .then((res) => res.json())
-      .then((json) => {})
+      .then(res => res.json())
+      .then(json => {})
       .then(() => {
-        fetch(`http://localhost:5000/api/room/${id}`, {
+        fetch(`https://api.panoramas.social/api/room/${id}`, {
           method: "DELETE",
           credentials: "include",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            identity: user.email,
-          }),
-        }).then((res) => {
+            identity: user.email
+          })
+        }).then(res => {
           //only export the image if the call was successfully ended
           if (res.status === 200) {
             return;

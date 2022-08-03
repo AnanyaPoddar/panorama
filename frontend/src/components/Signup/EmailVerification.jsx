@@ -8,28 +8,29 @@ const EmailVerification = () => {
 
   useEffect(() => {
     const verifyEmailUrl = () => {
-      fetch(`http://localhost:5000/api/${param.id}/verify/${param.token}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((res) => {
-          setLoading(false);
-          if (res.status===200) {
-            setValidUrl(true);
+      fetch(
+        `https://api.panoramas.social/api/${param.id}/verify/${param.token}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
           }
-          else { 
-          setValidUrl(false);
+        }
+      )
+        .then(res => {
+          setLoading(false);
+          if (res.status === 200) {
+            setValidUrl(true);
+          } else {
+            setValidUrl(false);
           }
           return res.json();
         })
-        .then((json) => {
+        .then(json => {
           return;
         })
-        .catch((err) => {
-          
+        .catch(err => {
           setLoading(false);
           setValidUrl(false);
         });
@@ -43,17 +44,15 @@ const EmailVerification = () => {
         <div className="msg">
           <h1>Loading...</h1>
         </div>
-      ):(validUrl ? (
-          <div className="msg">
-            <h1>Email verified successfully. You may now close this tab.</h1>
-          </div>
-        ) : (
-          <div className="msg">
-            <h1>404 Not Found</h1>
-          </div>
-        )
+      ) : validUrl ? (
+        <div className="msg">
+          <h1>Email verified successfully. You may now close this tab.</h1>
+        </div>
+      ) : (
+        <div className="msg">
+          <h1>404 Not Found</h1>
+        </div>
       )}
-        
     </div>
   );
 };

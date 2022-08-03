@@ -15,13 +15,13 @@ const InactiveRoom = () => {
   const [isHost, setIsHost] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/${id}/host`, {
-      credentials: "include",
+    fetch(`https://api.panoramas.social/api/room/${id}/host`, {
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         return res.json();
       })
-      .then((json) => {
+      .then(json => {
         //only the host of the room has access to it in its inactive state
         if (json.host !== user.email) {
           setIsHost(false);

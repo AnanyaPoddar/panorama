@@ -60,7 +60,7 @@ const Room = () => {
 
   //get token to connect to room with given id
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/${id}/token`, {
+    fetch(`https://api.panoramas.social/api/room/${id}/token`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -84,7 +84,7 @@ const Room = () => {
       })
       //Set the host of room, as hosts have extra controls including kicking out participants and ending call
       .then(
-        fetch(`http://localhost:5000/api/room/${id}/host`, {
+        fetch(`https://api.panoramas.social/api/room/${id}/host`, {
           credentials: "include"
         })
           .then(res => {
@@ -156,13 +156,16 @@ const Room = () => {
 
   const kickParticipant = participant => {
     //TODO: Handle errors
-    fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include"
-    })
+    fetch(
+      `https://api.panoramas.social/api/room/${id}/participants/${participant}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include"
+      }
+    )
       .then(res => {
         if (res.status === 200) {
           setOpenKickedNotif(true);

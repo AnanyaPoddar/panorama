@@ -3,7 +3,7 @@ export default () => {
   onmessage = e => {
     let { emails, names, type } = e.data;
     if (type === "verification") {
-      fetch(`http://localhost:5000/api/verification-mail`, {
+      fetch(`https://api.panoramas.social/api/verification-mail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -30,7 +30,7 @@ export default () => {
       let html = `Attendees: ${names}<br/>`;
       let to = { email: emails, html: html };
 
-      fetch(`http://localhost:5000/api/text-mail`, {
+      fetch(`https://api.panoramas.social/api/text-mail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

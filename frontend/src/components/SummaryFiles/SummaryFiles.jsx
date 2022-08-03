@@ -22,13 +22,13 @@ function SummaryFiles() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/${id}/host`, {
-      credentials: "include",
+    fetch(`https://api.panoramas.social/api/room/${id}/host`, {
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         return res.json();
       })
-      .then((json) => {
+      .then(json => {
         //only the host of the room has access to it in its inactive state
         if (json.host !== user.email) {
           setIsHost(false);
@@ -39,7 +39,7 @@ function SummaryFiles() {
       });
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     //Prevent page reload
     e.preventDefault();
     //setSuccess(null);
@@ -51,25 +51,25 @@ function SummaryFiles() {
     }
 
     // Fetch call to add files to the cloud and return a url to the file
-    fetch(`http://localhost:5000/api/upload`, {
+    fetch(`https://api.panoramas.social/api/upload`, {
       method: "POST",
       body: formdata,
-      credentials: "include",
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         if (res.status == 200) {
           setFileName("");
           setFile(null);
           return res.json();
         }
       })
-      .then((json) => {
+      .then(json => {
         // worker stuff
         const fileData = json;
         const worker = new WorkerBuilder(Worker);
         worker.postMessage({ fileData, id });
-        worker.onerror = (err) => err;
-        worker.onmessage = (e) => {
+        worker.onerror = err => err;
+        worker.onmessage = e => {
           worker.terminate();
           let { success, time } = e.data;
           if (success != "success") {
@@ -84,12 +84,12 @@ function SummaryFiles() {
           );
         };
       })
-      .catch((error) => {
+      .catch(error => {
         console.error("Error:", error);
       });
   };
 
-  const changeFile = (data) => {
+  const changeFile = data => {
     if (data.target.files[0]) {
       if (data.target.files[0].size / 1000 / 1000 > 5) {
         setErrorMessage("File must not exceed 5MB");
@@ -128,7 +128,7 @@ function SummaryFiles() {
             type="file"
             id="file-upload"
             hidden
-            onChange={(data) => {
+            onChange={data => {
               changeFile(data);
             }}
           />

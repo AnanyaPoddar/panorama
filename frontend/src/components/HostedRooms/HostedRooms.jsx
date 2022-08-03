@@ -32,34 +32,34 @@ const HostedRooms = () => {
   const navigate = useNavigate();
   // check for rooms that user is host of
   useEffect(() => {
-    fetch(`http://localhost:5000/api/room/hosted`, {
+    fetch(`https://api.panoramas.social/api/room/hosted`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      credentials: "include",
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         return res.json();
       })
-      .then((json) => {
+      .then(json => {
         setRooms(json.names);
         setRoomIds(json.ids);
       })
-      .catch((err) => console.error(err));
+      .catch(err => console.error(err));
   }, []);
 
   const joinRoom = () => {
-    fetch(`http://localhost:5000/api/room/${currRoom}/completed`, {
-      credentials: "include",
+    fetch(`https://api.panoramas.social/api/room/${currRoom}/completed`, {
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         //Go to room if it exists, otherwise set error to show it does not exist
         if (res.status === 200) {
           navigate(`/room/inactive/${currRoom}`);
         }
       })
-      .catch((error) => console.error(error));
+      .catch(error => console.error(error));
   };
 
   return (
@@ -71,8 +71,8 @@ const HostedRooms = () => {
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
-            boxSizing: "border-box",
-          },
+            boxSizing: "border-box"
+          }
         }}
       >
         <Toolbar />
@@ -100,7 +100,7 @@ const HostedRooms = () => {
           color="primary"
           value={type}
           exclusive
-          onChange={(e) => setType(e.target.value)}
+          onChange={e => setType(e.target.value)}
         >
           <ToggleButton value="join">Join Room</ToggleButton>
           <ToggleButton value="create">Create Room</ToggleButton>

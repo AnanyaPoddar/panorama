@@ -59,7 +59,7 @@ function SimpleDialog(props) {
     onClose(template);
   };
 
-  const handleListItemClick = (value) => {
+  const handleListItemClick = value => {
     onClose(value);
   };
   return (
@@ -127,17 +127,17 @@ const Whiteboard = ({ roomId }) => {
 
   useEffect(() => {
     // set the host
-    fetch(`http://localhost:5000/api/room/${roomId}/host`, {
-      credentials: "include",
+    fetch(`https://api.panoramas.social/api/room/${roomId}/host`, {
+      credentials: "include"
     })
-      .then((res) => {
+      .then(res => {
         return res.json();
       })
-      .then((json) => {
+      .then(json => {
         if (user.email === json.host) {
-          fetch(`http://localhost:5000/api/room/${roomId}/completed`, {
-            credentials: "include",
-          }).then((res) => {
+          fetch(`https://api.panoramas.social/api/room/${roomId}/completed`, {
+            credentials: "include"
+          }).then(res => {
             if (res.status == 200) {
               setOpen(false);
               return res.json();
@@ -147,10 +147,10 @@ const Whiteboard = ({ roomId }) => {
           });
         }
       })
-      .catch((err) => console.error(err));
+      .catch(err => console.error(err));
   }, []);
 
-  const handleClose = (value) => {
+  const handleClose = value => {
     setOpen(false);
     if (value == "mindmap") {
       setTemplate(mindmapTemplate);

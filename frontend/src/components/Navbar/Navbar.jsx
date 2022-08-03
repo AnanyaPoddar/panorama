@@ -6,7 +6,7 @@ import {
   ThemeProvider,
   createTheme,
   IconButton,
-  Avatar,
+  Avatar
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
@@ -23,31 +23,31 @@ const Navbar = () => {
     //Check if there is logged in user
     if (user) {
       setLoggedIn(true);
-      fetch(`http://localhost:5000/api/users/me/profilePic`, {
+      fetch(`https://api.panoramas.social/api/users/me/profilePic`, {
         method: "GET",
-        credentials: "include",
+        credentials: "include"
       })
-        .then((res) => res.json())
-        .then((json) => setProfilePic(json.image))
-        .catch((err) => console.error(err));
+        .then(res => res.json())
+        .then(json => setProfilePic(json.image))
+        .catch(err => console.error(err));
     } else setLoggedIn(false);
   }, [user]);
 
   //TODO: Move logout into its own component?
   const logout = () => {
     if (user) {
-      fetch(`http://localhost:5000/api/logout`, {
+      fetch(`https://api.panoramas.social/api/logout`, {
         method: "GET",
         credentials: "include",
         headers: {
-          "Access-Control-Allow-Credentials": true,
-        },
+          "Access-Control-Allow-Credentials": true
+        }
       })
-        .then((response) => {
+        .then(response => {
           if (response.status === 200) setUser(null);
           navigate("/");
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Error:", error);
         });
     }
@@ -57,9 +57,9 @@ const Navbar = () => {
     palette: {
       mode: "dark",
       primary: {
-        main: "#1976d2",
-      },
-    },
+        main: "#1976d2"
+      }
+    }
   });
 
   return (

@@ -33,7 +33,7 @@ function Login() {
     const creds = { identity: email.toLowerCase().trim(), password: pass };
 
     // Fetch call to sign user in
-    fetch(`http://localhost:5000/api/login`, {
+    fetch(`https://api.panoramas.social/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -96,7 +96,7 @@ function Login() {
           Log In
         </Button>
         <br />
-        <a href="http://localhost:5000/api/linkedin/auth">
+        <a href="https://api.panoramas.social/api/linkedin/auth">
           <img alt="linkedin" className="linkedinButton" src={linkedinButton} />
         </a>
       </form>

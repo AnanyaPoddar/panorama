@@ -33,7 +33,7 @@ const CreateRoom = () => {
       }
     }
     if (confirm) {
-      fetch(`http://localhost:5000/api/room`, {
+      fetch(`https://api.panoramas.social/api/room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -49,7 +49,7 @@ const CreateRoom = () => {
         })
         .then(json => {
           setRoomId(json.id);
-          fetch(`http://localhost:5000/api/invite`, {
+          fetch(`https://api.panoramas.social/api/invite`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"

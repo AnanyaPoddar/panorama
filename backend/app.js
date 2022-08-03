@@ -28,7 +28,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://panoramas.social",
     methods: "GET,POST,PUT,DELETE, PATCH",
     credentials: true
   })
@@ -36,7 +36,7 @@ app.use(
 
 //Again required for CORS
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Origin", "https://panoramas.social");
   res.header(
     "Access-Control-Allow-Methods",
     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
@@ -895,7 +895,7 @@ app.post("/api/verification-mail", (req, res) => {
     token.create(
       { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
       function(err, tok) {
-        const url = `http://localhost:3000/users/${userFound._id}/verify/${tok.token}`;
+        const url = `https://panoramas.social/users/${userFound._id}/verify/${tok.token}`;
         const mailData = {
           from: process.env.EMAIL,
           to: userFound.email,

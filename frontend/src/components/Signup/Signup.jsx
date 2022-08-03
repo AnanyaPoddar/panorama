@@ -96,7 +96,7 @@ function Signup() {
     formdata.append("dob", dob);
     formdata.append("file", newImg);
     // Fetch call to sign user in
-    fetch(`http://localhost:5000/api/users`, {
+    fetch(`https://api.panoramas.social/api/users`, {
       method: "POST",
       body: formdata
     })
@@ -215,7 +215,7 @@ function Signup() {
               Next
             </Button>
             <br />
-            <a href="http://localhost:5000/api/linkedin/auth">
+            <a href="https://api.panoramas.social/api/linkedin/auth">
               <img className="linkedinButton" src={linkedinButton} />
             </a>
           </form>

@@ -7,22 +7,22 @@ import { TextField } from "@mui/material";
 import "../Form.css";
 import { callbackify } from "util";
 
-const WhitelistTable = (props) => {
+const WhitelistTable = props => {
   const { user } = useContext(AuthContext);
   const [rows, setRows] = useState([]);
   const [originalRows, setOriginalRows] = useState([]);
 
   // get the list of users
   useEffect(() => {
-    fetch(`http://localhost:5000/api/users`, {
-      method: "GET",
+    fetch(`https://api.panoramas.social/api/users`, {
+      method: "GET"
     })
-      .then((res) => {
+      .then(res => {
         return res.json();
       })
-      .then((json) => {
+      .then(json => {
         let temp = json.users
-          .filter((item) => item.email !== user.email)
+          .filter(item => item.email !== user.email)
           .map((item, idx) => {
             item.id = idx;
             item.isLinkedinUser = item.isLinkedinUser ? "Linkedin" : "Panorama";
@@ -31,11 +31,11 @@ const WhitelistTable = (props) => {
         setOriginalRows(temp);
         setRows(temp);
       })
-      .catch((err) => console.error(err));
+      .catch(err => console.error(err));
   }, []);
 
-  const doSearch = (e) => {
-    const filteredRows = originalRows.filter((row) => {
+  const doSearch = e => {
+    const filteredRows = originalRows.filter(row => {
       return (row.email + row.firstname + row.lastname + row.isLinkedinUser)
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
@@ -47,7 +47,7 @@ const WhitelistTable = (props) => {
     { field: "email", headerName: "Email", width: 280 },
     { field: "firstname", headerName: "First name", width: 100 },
     { field: "lastname", headerName: "Last name", width: 100 },
-    { field: "isLinkedinUser", headerName: "User Type", width: 100 },
+    { field: "isLinkedinUser", headerName: "User Type", width: 100 }
   ];
 
   return (
@@ -69,10 +69,8 @@ const WhitelistTable = (props) => {
         rowsPerPageOptions={[Math.min(rows.length, 5)]}
         checkboxSelection
         disableColumnMenu
-        onSelectionModelChange={(newSelection) => {
-          props.callback(
-            newSelection.map((rowId) => originalRows[rowId].email)
-          );
+        onSelectionModelChange={newSelection => {
+          props.callback(newSelection.map(rowId => originalRows[rowId].email));
         }}
       />
     </div>

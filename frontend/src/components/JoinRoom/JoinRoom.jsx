@@ -21,13 +21,13 @@ const JoinRoom = () => {
 
   const joinRoom = e => {
     e.preventDefault();
-    fetch(`http://localhost:5000/api/room/${roomId}`, {
+    fetch(`https://api.panoramas.social/api/room/${roomId}`, {
       credentials: "include"
     }).then(res => {
       //Go to room if it exists, otherwise set error to show it does not exist
       if (res.status === 200) {
         fetch(
-          `http://localhost:5000/api/room/${roomId}/whitelist?` +
+          `https://api.panoramas.social/api/room/${roomId}/whitelist?` +
             new URLSearchParams({
               identity: user.email
             })
