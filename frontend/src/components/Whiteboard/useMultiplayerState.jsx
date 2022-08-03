@@ -9,7 +9,7 @@ export function useMultiplayerState(roomId) {
   const doc = new yjs.Doc();
 
   // Create a websocket provider
-  const provider = new WebsocketProvider("wss://panoramas.social:1234", roomId, doc, {
+  const provider = new WebsocketProvider("wss://panoramas.social", roomId, doc, {
     connect: true,
   });
 
