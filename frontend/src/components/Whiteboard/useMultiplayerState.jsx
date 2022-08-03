@@ -13,6 +13,10 @@ export function useMultiplayerState(roomId) {
     connect: true
   });
 
+  provider.on("status", event => {
+    console.log(event.status);
+  })
+
   // Export the provider's awareness API
   const awareness = provider.awareness;
 
