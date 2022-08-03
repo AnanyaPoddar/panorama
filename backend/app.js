@@ -131,7 +131,7 @@ app.use(function (req, res, next) {
 });
 
 // get the current user of the app
-app.get("/api/user", function (req, res) {
+app.get("/api/user", isAuthenticated, function (req, res) {
   if (req.session.user) {
     return res.status(200).json(req.session.user);
   } else {
@@ -204,7 +204,7 @@ app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
 });
 
 //Get all whitelisted users of a room
-app.get("/api/room/:roomId/whitelist", (req, res) => {
+app.get("/api/room/:roomId/whitelist", isAuthenticated, (req, res) => {
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
@@ -324,7 +324,7 @@ app.post("/api/room", isAuthenticated, (req, res) => {
 });
 
 // Upload file to the cloud
-app.post("/api/upload", multer.single("file"), (req, res, next) => {
+app.post("/api/upload", multer.single("file"), isAuthenticated, (req, res, next) => {
   // store file in bucket in google cloud
   if (!req.file) {
     res.status(200).json({ name: "none", url: "none" });
@@ -362,7 +362,7 @@ app.post("/api/upload", multer.single("file"), (req, res, next) => {
 });
 
 //Get the profile picture of the current logged-in user
-app.get("/api/users/me/profilePic", function (req, res) {
+app.get("/api/users/me/profilePic", isAuthenticated, function (req, res) {
   users.findOne({ email: req.session.user }, function (err3, user) {
     if (err3) return res.status(500).json({ re: "server", message: err3 });
     if (user) {
@@ -372,7 +372,7 @@ app.get("/api/users/me/profilePic", function (req, res) {
 });
 
 // get summary data
-app.get("/api/room/summary/:roomId", function (req, res) {
+app.get("/api/room/summary/:roomId", isAuthenticated, function (req, res) {
   client.video.v1.rooms
     .list({
       status: "completed",
@@ -416,7 +416,7 @@ app.get("/api/room/summary/:roomId", function (req, res) {
 });
 
 // sign up route
-app.post("/api/users", multer.single("file"), function (req, res, next) {
+app.post("/api/users", multer.single("file"), isAuthenticated, function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({ re: "email", message: "email is missing" });
@@ -523,7 +523,7 @@ app.post("/api/login", (req, res) => {
 });
 
 // get list of users
-app.get("/api/users", function (req, res, next) {
+app.get("/api/users", isAuthenticated, function (req, res, next) {
   users.find({}, function (err, users) {
     if (err) return res.status(500).json({ re: "server", message: err });
     return res.status(200).send({ users: users });

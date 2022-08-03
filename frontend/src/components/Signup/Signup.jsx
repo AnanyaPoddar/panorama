@@ -273,7 +273,7 @@ function Signup() {
             <br />
 
             <div id="previewtext">Add a profile picture:</div>
-            <img alt="preview" id="preview-dp" src={img} />
+            {img ? <img id="preview-dp" src={img} /> : <br />}
             <Button variant="contained" component="label">
               Upload File
               <input

@@ -107,7 +107,7 @@ function SummaryFiles() {
 
   return (
     <div className="inner">
-      <div className="page-heading">
+      <div className="page-heading-summary">
         Would you like to add a file to the summary?{" "}
       </div>
       <div>
@@ -137,7 +137,7 @@ function SummaryFiles() {
         <br />
         <div className="btns">
           <div className="btn">
-            <Button variant="outlined" className="btn" type="submit">
+            <Button variant="contained" className="btn" type="submit">
               Send Summary & Return to Lobby
             </Button>
           </div>
