@@ -45,6 +45,8 @@ app.use(function(req, res, next) {
   next();
 });
 
+console.log(process.env.DATABASE_URL);
+
 //middleware
 const isAuthenticated = function(req, res, next) {
   if (!req.session.user) {
@@ -547,8 +549,7 @@ passport.use(
     {
       clientID: process.env.LINKEDIN_KEY,
       clientSecret: process.env.LINKEDIN_SECRET,
-      callbackURL:
-        "https://api.panoramas.social/api/linkedin/auth/callback",
+      callbackURL: "https://api.panoramas.social/api/linkedin/auth/callback",
       scope: ["w_member_social", "r_emailaddress", "r_liteprofile"]
     },
     function(accessToken, refreshToken, profile, done) {
