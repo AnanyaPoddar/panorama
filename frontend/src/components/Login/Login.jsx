@@ -18,7 +18,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     //Prevent page reload
     e.preventDefault();
 
@@ -36,12 +36,12 @@ function Login() {
     fetch(`http://localhost:5000/api/login`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       credentials: "include",
-      body: JSON.stringify(creds),
+      body: JSON.stringify(creds)
     })
-      .then((response) => {
+      .then(response => {
         if (response.status == 401) {
           setErrorMessage("Invalid credentials");
         } else if (response.status === 403) {
@@ -51,13 +51,13 @@ function Login() {
         }
       })
       //TODO: Possibly check status is ok before rendering
-      .then((json) => {
+      .then(json => {
         if (json) {
           setUser({ email: json.email });
           navigate("/lobby");
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.error("Error:", error);
       });
   };
@@ -80,7 +80,7 @@ function Login() {
           placeholder="Enter email"
           value={email}
           inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-          onChange={(e) => setEmail(e.target.value.trim())}
+          onChange={e => setEmail(e.target.value.trim())}
         />
         <br />
         <TextField
@@ -89,20 +89,15 @@ function Login() {
           placeholder="Enter password"
           value={pass}
           inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-          onChange={(e) => setPass(e.target.value)}
+          onChange={e => setPass(e.target.value)}
         />
         <br />
         <Button variant="outlined" type="submit">
           Log In
         </Button>
         <br />
-<<<<<<< HEAD
         <a href="http://localhost:5000/api/linkedin/auth">
           <img alt="linkedin" className="linkedinButton" src={linkedinButton} />
-=======
-        <a href="https://api.panoramas.social/api/linkedin/auth">
-          <img className="linkedinButton" src={linkedinButton} />
->>>>>>> main
         </a>
       </form>
     </div>
