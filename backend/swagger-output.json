@@ -5,10 +5,10 @@
     "description": "Panorama API Documentation",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
+  "host": "panoramas.social",
   "basePath": "/",
   "schemes": [
-    "http"
+    "https"
   ],
   "paths": {
     "/api/user": {
