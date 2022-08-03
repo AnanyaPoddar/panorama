@@ -2,7 +2,7 @@ const express = require("express");
 const { format } = require("util");
 const nodemailer = require("nodemailer");
 const http = require("http");
-const uuid = require("uuid"); 
+const uuid = require("uuid");
 const getVideoToken = require("./generate-token");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
@@ -149,7 +149,6 @@ app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
       res.status(404).send(JSON.stringify({ err: "Room not found" }));
     });
 });
-
 // check completed rooms for a room
 app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
   let found = false;
@@ -324,42 +323,47 @@ app.post("/api/room", isAuthenticated, (req, res) => {
 });
 
 // Upload file to the cloud
-app.post("/api/upload", multer.single("file"), isAuthenticated, (req, res, next) => {
-  // store file in bucket in google cloud
-  if (!req.file) {
-    res.status(200).json({ name: "none", url: "none" });
-    return;
-  }
+app.post(
+  "/api/upload",
+  multer.single("file"),
+  isAuthenticated,
+  (req, res, next) => {
+    // store file in bucket in google cloud
+    if (!req.file) {
+      res.status(200).json({ name: "none", url: "none" });
+      return;
+    }
 
-  // Create a new blob in the bucket and upload the file data.
+    // Create a new blob in the bucket and upload the file data.
 
-  // add random string to filename so that it doesnt get replaced
-  let filenameOg = req.file.originalname.slice(
-    0,
-    req.file.originalname.lastIndexOf(".")
-  );
-  const ext = req.file.originalname.slice(
-    req.file.originalname.lastIndexOf(".")
-  );
-  const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
-
-  const blob = bucket.file(filename.replace(/\s+/g, ""));
-  const blobStream = blob.createWriteStream();
-
-  blobStream.on("error", (err) => {
-    next(err);
-  });
-
-  blobStream.on("finish", () => {
-    // The public URL can be used to directly access the file via HTTP.
-    const publicUrl = format(
-      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    // add random string to filename so that it doesnt get replaced
+    let filenameOg = req.file.originalname.slice(
+      0,
+      req.file.originalname.lastIndexOf(".")
     );
-    return res.status(200).json({ url: publicUrl, name: filenameOg });
-  });
+    const ext = req.file.originalname.slice(
+      req.file.originalname.lastIndexOf(".")
+    );
+    const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
 
-  blobStream.end(req.file.buffer);
-});
+    const blob = bucket.file(filename.replace(/\s+/g, ""));
+    const blobStream = blob.createWriteStream();
+
+    blobStream.on("error", (err) => {
+      next(err);
+    });
+
+    blobStream.on("finish", () => {
+      // The public URL can be used to directly access the file via HTTP.
+      const publicUrl = format(
+        `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+      );
+      return res.status(200).json({ url: publicUrl, name: filenameOg });
+    });
+
+    blobStream.end(req.file.buffer);
+  }
+);
 
 //Get the profile picture of the current logged-in user
 app.get("/api/users/me/profilePic", isAuthenticated, function (req, res) {
