@@ -580,7 +580,7 @@ app.get(
 app.get(
   "/api/linkedin/auth/callback",
   passport.authenticate("linkedin", {
-    successRedirect: "https://panoramas.social/signin",
+    successRedirect: "https://panoramas.social/#/signin",
     failureRedirect: "https://panoramas.social",
   })
 );
