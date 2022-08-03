@@ -28,7 +28,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://panoramas.social",
+    origin: ["https://panoramas.social", "https://api.panoramas.social"],
     methods: "GET,POST,PUT,DELETE, PATCH",
     credentials: true,
   })
@@ -36,7 +36,7 @@ app.use(
 
 //Again required for CORS
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://panoramas.social");
+  res.header("Access-Control-Allow-Origin", ["https://panoramas.social", "https://api.panoramas.social"]);
   res.header(
     "Access-Control-Allow-Methods",
     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
