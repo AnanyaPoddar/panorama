@@ -1,7 +1,7 @@
 const express = require("express");
 const { format } = require("util");
 const nodemailer = require("nodemailer");
-const http = require("https");
+const http = require("http");
 const uuid = require("uuid");
 const getVideoToken = require("./generate-token");
 const bodyParser = require("body-parser");
