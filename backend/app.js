@@ -2,7 +2,7 @@ const express = require("express");
 const { format } = require("util");
 const nodemailer = require("nodemailer");
 const http = require("http");
-const uuid = require("uuid");
+const uuid = require("uuid"); 
 const getVideoToken = require("./generate-token");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
@@ -28,7 +28,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["https://panoramas.social", "https://api.panoramas.social"],
+    origin: "https://panoramas.social",
     methods: "GET,POST,PUT,DELETE, PATCH, OPTIONS",
     credentials: true,
   })
@@ -36,7 +36,7 @@ app.use(
 
 //Again required for CORS
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", ["https://panoramas.social", "https://api.panoramas.social"]);
+  res.header("Access-Control-Allow-Origin", "https://panoramas.social");
   res.header(
     "Access-Control-Allow-Methods",
     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
@@ -98,21 +98,6 @@ const token = require("./models/token.js");
 const crypto = require("crypto");
 const user = require("./models/user");
 
-//For swagger docs
-const swaggerAutogen = require("swagger-autogen")();
-const swaggerUi = require("swagger-ui-express");
-
-const doc = {
-  info: {
-    title: "Panorama",
-    description: "Panorama API Documentation",
-  },
-};
-const outputFile = "./swagger-output.json";
-const endpointsFiles = ["./app.js"];
-swaggerAutogen(outputFile, endpointsFiles, doc);
-const swaggerFile = require("./swagger-output.json");
-
 // in-memory storage for access tokens
 const accessTokens = {};
 
@@ -136,10 +121,9 @@ app.use(
   })
 );
 
+//app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
-//serve the api docs
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use(function (req, res, next) {
   console.log("HTTP request", req.session.user, req.method, req.url, req.body);
@@ -148,7 +132,6 @@ app.use(function (req, res, next) {
 
 // get the current user of the app
 app.get("/api/user", isAuthenticated, function (req, res) {
-  // #swagger.description = 'Get the current user'
   if (req.session.user) {
     return res.status(200).json(req.session.user);
   } else {
@@ -156,8 +139,8 @@ app.get("/api/user", isAuthenticated, function (req, res) {
   }
 });
 
+//Check if room exists and is in progress
 app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
-  // #swagger.description = 'Retrieve an in-progress twilio-video room instance by unique roomID'
   client.video.v1
     .rooms(req.params.roomId)
     .fetch()
@@ -167,8 +150,8 @@ app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
     });
 });
 
+// check completed rooms for a room
 app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
-  // #swagger.description = 'See if room with unique roomID has "completed" status'
   let found = false;
   client.video.v1.rooms
     .list({
@@ -203,8 +186,6 @@ app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
 
 //Get all participants of a room (in-progress or completed)
 app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
-  // #swagger.description = 'Get all connected participants of an in-progress room, identified by unique roomId'
-
   const roomId = req.params.roomId;
 
   client.video.v1
@@ -222,9 +203,8 @@ app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
     });
 });
 
+//Get all whitelisted users of a room
 app.get("/api/room/:roomId/whitelist", isAuthenticated, (req, res) => {
-  // #swagger.description = 'Get the emails of all participants who are approved to join a room with given roomID'
-
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
@@ -241,8 +221,8 @@ app.get("/api/room/:roomId/whitelist", isAuthenticated, (req, res) => {
   });
 });
 
+//end room, all connected participants will be disconnected; this is restricted to host of the room
 app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
-  // #swagger.description = 'End an in-progress room given a roomID, at which point all connected participants will be disconnected'
   rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
@@ -265,12 +245,11 @@ app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
   });
 });
 
+//Remove participant from an in-progress room
 app.delete(
   "/api/room/:roomId/participants/:participantName",
   isAuthenticated,
   (req, res) => {
-    // #swagger.description = 'Remove a participant from a room with given roomID, based on their unique identity'
-
     const roomId = req.params.roomId;
     const participant = req.params.participantName;
     rooms.findOne({ id: req.params.roomId }, function (err, room) {
@@ -304,9 +283,8 @@ app.delete(
   }
 );
 
+//Get token to access existing room
 app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
-  // #swagger.description = 'Get a twilio-video access token for an existing room with given roomID'
-
   const roomId = req.params.roomId;
   const identity = req.session.user;
   const token = getVideoToken(identity, roomId);
@@ -326,8 +304,8 @@ app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
   res.status(200).send(JSON.stringify({ token: token, id: roomId }));
 });
 
+//Returns unique identifier for room, and identity associated with the created room is the host
 app.post("/api/room", isAuthenticated, (req, res) => {
-  // #swagger.description = 'Creates a new room, with an associated host and unique UUID identifier'
   const roomId = uuid.v4();
   const identity = req.session.user;
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
@@ -346,49 +324,45 @@ app.post("/api/room", isAuthenticated, (req, res) => {
 });
 
 // Upload file to the cloud
-app.post(
-  "/api/upload",
-  multer.single("file"),
-  isAuthenticated,
-  (req, res, next) => {
-    // store file in bucket in google cloud
-    if (!req.file) {
-      res.status(200).json({ name: "none", url: "none" });
-      return;
-    }
-
-    // add random string to filename so that it doesnt get replaced
-    let filenameOg = req.file.originalname.slice(
-      0,
-      req.file.originalname.lastIndexOf(".")
-    );
-    const ext = req.file.originalname.slice(
-      req.file.originalname.lastIndexOf(".")
-    );
-    const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
-
-    const blob = bucket.file(filename.replace(/\s+/g, ""));
-    const blobStream = blob.createWriteStream();
-
-    blobStream.on("error", (err) => {
-      next(err);
-    });
-
-    blobStream.on("finish", () => {
-      // The public URL can be used to directly access the file via HTTP.
-      const publicUrl = format(
-        `https://storage.googleapis.com/${bucket.name}/${blob.name}`
-      );
-      return res.status(200).json({ url: publicUrl, name: filenameOg });
-    });
-
-    blobStream.end(req.file.buffer);
+app.post("/api/upload", multer.single("file"), isAuthenticated, (req, res, next) => {
+  // store file in bucket in google cloud
+  if (!req.file) {
+    res.status(200).json({ name: "none", url: "none" });
+    return;
   }
-);
 
+  // Create a new blob in the bucket and upload the file data.
+
+  // add random string to filename so that it doesnt get replaced
+  let filenameOg = req.file.originalname.slice(
+    0,
+    req.file.originalname.lastIndexOf(".")
+  );
+  const ext = req.file.originalname.slice(
+    req.file.originalname.lastIndexOf(".")
+  );
+  const filename = filenameOg + crypto.randomBytes(4).toString("hex") + ext;
+
+  const blob = bucket.file(filename.replace(/\s+/g, ""));
+  const blobStream = blob.createWriteStream();
+
+  blobStream.on("error", (err) => {
+    next(err);
+  });
+
+  blobStream.on("finish", () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+    );
+    return res.status(200).json({ url: publicUrl, name: filenameOg });
+  });
+
+  blobStream.end(req.file.buffer);
+});
+
+//Get the profile picture of the current logged-in user
 app.get("/api/users/me/profilePic", isAuthenticated, function (req, res) {
-  // #swagger.description = 'Get the profile picture of the current logged-in user'
-
   users.findOne({ email: req.session.user }, function (err3, user) {
     if (err3) return res.status(500).json({ re: "server", message: err3 });
     if (user) {
@@ -912,7 +886,7 @@ app.post("/api/verification-mail", (req, res) => {
     token.create(
       { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
       function (err, tok) {
-        const url = `https://panoramas.social/#/users/${userFound._id}/verify/${tok.token}`;
+        const url = `https://panoramas.social/users/${userFound._id}/verify/${tok.token}`;
         const mailData = {
           from: process.env.EMAIL,
           to: userFound.email,
