@@ -419,7 +419,7 @@
         }
       }
     },
-    "/api/linkedin/auth": {
+    /*"/api/linkedin/auth": {
       "get": {
         "description": "",
         "parameters": [],
@@ -449,7 +449,7 @@
           }
         }
       }
-    },
+    },*/
     "/api/logout": {
       "get": {
         "description": "",
@@ -494,7 +494,7 @@
         }
       }
     },
-    "/api/linkedin/post": {
+    /*"/api/linkedin/post": {
       "post": {
         "description": "",
         "parameters": [
@@ -523,7 +523,7 @@
           }
         }
       }
-    },
+    },*/
     "/api/email/invite": {
       "post": {
         "description": "",
