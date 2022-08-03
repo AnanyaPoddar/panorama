@@ -29,7 +29,7 @@ function Signup() {
   const lastfield = React.useRef(null);
   const dobfield = React.useRef(null);
 
-  const nextPage = (e) => {
+  const nextPage = e => {
     //Prevent page reload
     e.preventDefault();
     setSuccess(null);
@@ -55,11 +55,11 @@ function Signup() {
     setPage(2);
   };
 
-  const backPage = (e) => {
+  const backPage = e => {
     setPage(1);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     //Prevent page reload
     e.preventDefault();
     setSuccess(null);
@@ -98,9 +98,9 @@ function Signup() {
     // Fetch call to sign user in
     fetch(`http://localhost:5000/api/users`, {
       method: "POST",
-      body: formdata,
+      body: formdata
     })
-      .then((res) => {
+      .then(res => {
         if (res.status != 200) {
           if (res.status === 409) {
             setErrorMessage("This email has already been used");
@@ -122,14 +122,14 @@ function Signup() {
           return res.json();
         }
       })
-      .then((json) => {
+      .then(json => {
         // create worker and use it to send a verification email
         setSuccess("Loading...");
         const worker = new WorkerBuilder(Worker);
         const emails = json.email;
         worker.postMessage({ emails });
-        worker.onerror = (err) => err;
-        worker.onmessage = (e) => {
+        worker.onerror = err => err;
+        worker.onmessage = e => {
           let { success, time } = e.data;
           if (success === "success") {
             setSuccess("Success! Check your email for a verification link.");
@@ -137,12 +137,12 @@ function Signup() {
           worker.terminate();
         };
       })
-      .catch((error) => {
+      .catch(error => {
         console.error("Error:", error);
       });
   };
 
-  const changeImage = (data) => {
+  const changeImage = data => {
     let fileName = data.target.value;
     let extFile = fileName
       .substr(fileName.lastIndexOf(".") + 1, fileName.length)
@@ -162,7 +162,6 @@ function Signup() {
 
   return (
     <div>
-<<<<<<< HEAD
       {page == 1 ? (
         <div className="inner">
           <div className="page-heading">
@@ -184,7 +183,7 @@ function Signup() {
               inputRef={emailfield}
               value={email}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
             />
             <br />
             <TextField
@@ -194,7 +193,7 @@ function Signup() {
               inputRef={password1}
               value={pass}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setPass(e.target.value)}
+              onChange={e => setPass(e.target.value)}
             />
             <br />
             <TextField
@@ -204,7 +203,7 @@ function Signup() {
               placeholder="Confirm password"
               value={pass2}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setPass2(e.target.value)}
+              onChange={e => setPass2(e.target.value)}
             />
             <br />
             <div className="pass-desc">
@@ -237,7 +236,7 @@ function Signup() {
               inputRef={firstfield}
               value={firstname}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setFname(e.target.value)}
+              onChange={e => setFname(e.target.value)}
             />
             <br />
             <TextField
@@ -246,7 +245,7 @@ function Signup() {
               inputRef={lastfield}
               value={lastname}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setLname(e.target.value)}
+              onChange={e => setLname(e.target.value)}
             />
             <br />
             <TextField
@@ -255,7 +254,7 @@ function Signup() {
               value={dob}
               inputRef={dobfield}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={(e) => setDob(e.target.value)}
+              onChange={e => setDob(e.target.value)}
             />
             <br />
 
@@ -268,7 +267,7 @@ function Signup() {
                 id="dp"
                 accept="image/png, image/jpeg, image/jpg"
                 hidden
-                onChange={(data) => {
+                onChange={data => {
                   changeImage(data);
                 }}
               />
@@ -289,51 +288,6 @@ function Signup() {
           </form>
         </div>
       )}
-=======
-      <form onSubmit={handleSubmit} className="form">
-        <TextField
-          variant="standard"
-          placeholder="Enter username"
-          inputRef={username}
-          value={user}
-          onChange={e => setUser(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          placeholder="Enter Email"
-          inputRef={emailfield}
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          type="password"
-          placeholder="Enter password"
-          inputRef={password1}
-          value={pass}
-          onChange={e => setPass(e.target.value)}
-        />
-        <br />
-        <TextField
-          variant="standard"
-          type="password"
-          inputRef={password2}
-          placeholder="Confirm password"
-          value={pass2}
-          onChange={e => setPass2(e.target.value)}
-        />
-        <br />
-        <Button variant="outlined" type="submit">
-          Sign Up
-        </Button>
-        <br />
-        <a href="https://api.panoramas.social/api/linkedin/auth">
-          <img className="linkedinButton" src={linkedinButton} />
-        </a>
-      </form>
->>>>>>> main
     </div>
   );
 }

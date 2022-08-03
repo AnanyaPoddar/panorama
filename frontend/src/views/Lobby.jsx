@@ -24,7 +24,7 @@ const Lobby = () => {
   // check if the user has authenticated through linkedin
   useEffect(() => {
     if (!user) {
-      fetch(`https://api.panoramas.social/api/linkedin/auth/success`, {
+      fetch(`http://localhost:5000/api/linkedin/auth/success`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -52,7 +52,7 @@ const Lobby = () => {
 
   const logout = e => {
     if (user) {
-      fetch(`https://api.panoramas.social/api/logout`, {
+      fetch(`http://localhost:5000/api/logout`, {
         method: "GET"
       })
         .then(response => {
