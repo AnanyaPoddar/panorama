@@ -416,7 +416,7 @@ app.get("/api/room/summary/:roomId", isAuthenticated, function (req, res) {
 });
 
 // sign up route
-app.post("/api/users", multer.single("file"), isAuthenticated, function (req, res, next) {
+app.post("/api/users", multer.single("file"), function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({ re: "email", message: "email is missing" });
