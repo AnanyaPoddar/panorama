@@ -1,8 +1,8 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext } from "react";
 
+import HostedRooms from "../../components/HostedRooms/HostedRooms";
 import { AuthContext } from "../../context/AuthProvider";
 import "./Lobby.css";
-import HostedRooms from "../../components/HostedRooms/HostedRooms";
 
 const Lobby = () => {
   const { user } = useContext(AuthContext);

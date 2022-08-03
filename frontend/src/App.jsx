@@ -1,15 +1,15 @@
-import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Room from "./components/Room/Room";
-import Lobby from "./views/Lobby/Lobby";
+import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
-import Home from "./views/Home/Home";
-import Signin from "./views/Signin/Signin";
-import EmailVerification from "./components/Signup/EmailVerification";
-import Credits from "./views/Credits/Credits";
 import ProtectedRoutes from "./components/ProtectedRoutes/ProtectedRoute";
 import InactiveRoom from "./components/Room/InactiveRoom";
+import Room from "./components/Room/Room";
+import EmailVerification from "./components/Signup/EmailVerification";
 import SummaryFiles from "./components/SummaryFiles/SummaryFiles";
+import Credits from "./views/Credits/Credits";
+import Home from "./views/Home/Home";
+import Lobby from "./views/Lobby/Lobby";
+import Signin from "./views/Signin/Signin";
 
 function App() {
   return (

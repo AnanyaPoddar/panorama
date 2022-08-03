@@ -3,11 +3,11 @@ import {
   Mic,
   MicOff,
   Videocam,
-  VideocamOff,
+  VideocamOff
 } from "@mui/icons-material";
-import { IconButton, Tooltip, Button } from "@mui/material";
-import { createLocalVideoTrack } from "twilio-video";
+import { IconButton, Tooltip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { createLocalVideoTrack } from "twilio-video";
 
 const LocalControls = ({
   room,

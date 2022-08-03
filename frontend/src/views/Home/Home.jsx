@@ -1,8 +1,8 @@
+import { Button } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@mui/material";
-import "./Home.css";
 import video from "../../assets/bgvid.mp4";
+import "./Home.css";
 
 const Home = () => {
   const navigate = useNavigate();

@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useContext } from "react";
-import { Button, TextField, Input, Alert, AlertTitle } from "@mui/material";
-import "../../components/Form.css";
+import { Alert, AlertTitle, Button } from "@mui/material";
+import React, { useContext, useEffect, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import errorIcon from "../../assets/exclamation-mark.png";
-import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from "../CallSummary/summaryWorker";
-import { useNavigate, useParams, Navigate } from "react-router-dom";
+import "../../components/Form.css";
 import { AuthContext } from "../../context/AuthProvider";
+import Worker from "../CallSummary/summaryWorker";
+import WorkerBuilder from "../CallSummary/WorkerBuilder";
 import "./SummaryFiles.css";
 
 function SummaryFiles() {
@@ -23,12 +23,12 @@ function SummaryFiles() {
 
   useEffect(() => {
     fetch(`https://api.panoramas.social/api/room/${id}/host`, {
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(json => {
+      .then((json) => {
         //only the host of the room has access to it in its inactive state
         if (json.host !== user.email) {
           setIsHost(false);
@@ -39,7 +39,7 @@ function SummaryFiles() {
       });
   }, []);
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
     //setSuccess(null);
@@ -54,25 +54,25 @@ function SummaryFiles() {
     fetch(`https://api.panoramas.social/api/upload`, {
       method: "POST",
       body: formdata,
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
-        if (res.status == 200) {
+      .then((res) => {
+        if (res.status === 200) {
           setFileName("");
           setFile(null);
           return res.json();
         }
       })
-      .then(json => {
+      .then((json) => {
         // worker stuff
         const fileData = json;
         const worker = new WorkerBuilder(Worker);
         worker.postMessage({ fileData, id });
-        worker.onerror = err => err;
-        worker.onmessage = e => {
+        worker.onerror = (err) => err;
+        worker.onmessage = (e) => {
           worker.terminate();
           let { success, time } = e.data;
-          if (success != "success") {
+          if (success !== "success") {
             console.error(success);
           }
           // navigate to lobby
@@ -84,12 +84,12 @@ function SummaryFiles() {
           );
         };
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error:", error);
       });
   };
 
-  const changeFile = data => {
+  const changeFile = (data) => {
     if (data.target.files[0]) {
       if (data.target.files[0].size / 1000 / 1000 > 5) {
         setErrorMessage("File must not exceed 5MB");
@@ -118,7 +118,8 @@ function SummaryFiles() {
         {errorMessage && (
           <p className="error">
             {" "}
-            <img className="errorIcon" src={errorIcon}></img> {errorMessage}{" "}
+            <img alt="error" className="errorIcon" src={errorIcon}></img>{" "}
+            {errorMessage}{" "}
           </p>
         )}
         {success && <p className="success"> {success} </p>}
@@ -128,7 +129,7 @@ function SummaryFiles() {
             type="file"
             id="file-upload"
             hidden
-            onChange={data => {
+            onChange={(data) => {
               changeFile(data);
             }}
           />

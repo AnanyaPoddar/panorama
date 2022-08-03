@@ -1,9 +1,9 @@
-import { useContext, useState, useEffect } from "react";
-import { ToggleButtonGroup, ToggleButton, Button, Box } from "@mui/material";
+import { Box, Button, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthProvider";
 
-import JoinRoom from "../components/JoinRoom/JoinRoom";
 import CreateRoom from "../components/CreateRoom/CreateRoom";
+import JoinRoom from "../components/JoinRoom/JoinRoom";
 import Login from "../components/Login/Login";
 import Signup from "../components/Signup/Signup";
 import "./Lobby.css";

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Button, TextField, Input } from "@mui/material";
+import { Button, TextField } from "@mui/material";
+import React, { useState } from "react";
 import validator from "validator";
-import "../../components/Form.css";
-import "./Signup.css";
 import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
-import WorkerBuilder from "../CallSummary/WorkerBuilder";
+import "../../components/Form.css";
 import Worker from "../CallSummary/verificationWorker";
+import WorkerBuilder from "../CallSummary/WorkerBuilder";
+import "./Signup.css";
 
 function Signup() {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -29,7 +29,7 @@ function Signup() {
   const lastfield = React.useRef(null);
   const dobfield = React.useRef(null);
 
-  const nextPage = e => {
+  const nextPage = (e) => {
     //Prevent page reload
     e.preventDefault();
     setSuccess(null);
@@ -55,11 +55,11 @@ function Signup() {
     setPage(2);
   };
 
-  const backPage = e => {
+  const backPage = (e) => {
     setPage(1);
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
     setSuccess(null);
@@ -98,10 +98,10 @@ function Signup() {
     // Fetch call to sign user in
     fetch(`https://api.panoramas.social/api/users`, {
       method: "POST",
-      body: formdata
+      body: formdata,
     })
-      .then(res => {
-        if (res.status != 200) {
+      .then((res) => {
+        if (res.status !== 200) {
           if (res.status === 409) {
             setErrorMessage("This email has already been used");
             setPage(1);
@@ -122,14 +122,14 @@ function Signup() {
           return res.json();
         }
       })
-      .then(json => {
+      .then((json) => {
         // create worker and use it to send a verification email
         setSuccess("Loading...");
         const worker = new WorkerBuilder(Worker);
         const emails = json.email;
         worker.postMessage({ emails });
-        worker.onerror = err => err;
-        worker.onmessage = e => {
+        worker.onerror = (err) => err;
+        worker.onmessage = (e) => {
           let { success, time } = e.data;
           if (success === "success") {
             setSuccess("Success! Check your email for a verification link.");
@@ -137,12 +137,12 @@ function Signup() {
           worker.terminate();
         };
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error:", error);
       });
   };
 
-  const changeImage = data => {
+  const changeImage = (data) => {
     let fileName = data.target.value;
     let extFile = fileName
       .substr(fileName.lastIndexOf(".") + 1, fileName.length)
@@ -162,7 +162,7 @@ function Signup() {
 
   return (
     <div>
-      {page == 1 ? (
+      {page === 1 ? (
         <div className="inner">
           <div className="page-heading">
             {" "}
@@ -172,7 +172,12 @@ function Signup() {
             {errorMessage && (
               <p className="error">
                 {" "}
-                <img className="errorIcon" src={errorIcon}></img> {errorMessage}{" "}
+                <img
+                  alt="error"
+                  className="errorIcon"
+                  src={errorIcon}
+                ></img>{" "}
+                {errorMessage}{" "}
               </p>
             )}
             {success && <p className="success"> {success} </p>}
@@ -183,7 +188,7 @@ function Signup() {
               inputRef={emailfield}
               value={email}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <br />
             <TextField
@@ -193,7 +198,7 @@ function Signup() {
               inputRef={password1}
               value={pass}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setPass(e.target.value)}
+              onChange={(e) => setPass(e.target.value)}
             />
             <br />
             <TextField
@@ -203,7 +208,7 @@ function Signup() {
               placeholder="Confirm password"
               value={pass2}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setPass2(e.target.value)}
+              onChange={(e) => setPass2(e.target.value)}
             />
             <br />
             <div className="pass-desc">
@@ -216,7 +221,11 @@ function Signup() {
             </Button>
             <br />
             <a href="https://api.panoramas.social/api/linkedin/auth">
-              <img className="linkedinButton" src={linkedinButton} />
+              <img
+                alt="linkedin"
+                className="linkedinButton"
+                src={linkedinButton}
+              />
             </a>
           </form>
         </div>
@@ -227,7 +236,12 @@ function Signup() {
             {errorMessage && (
               <p className="error">
                 {" "}
-                <img className="errorIcon" src={errorIcon}></img> {errorMessage}{" "}
+                <img
+                  alt="error"
+                  className="errorIcon"
+                  src={errorIcon}
+                ></img>{" "}
+                {errorMessage}{" "}
               </p>
             )}
             <TextField
@@ -236,7 +250,7 @@ function Signup() {
               inputRef={firstfield}
               value={firstname}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setFname(e.target.value)}
+              onChange={(e) => setFname(e.target.value)}
             />
             <br />
             <TextField
@@ -245,7 +259,7 @@ function Signup() {
               inputRef={lastfield}
               value={lastname}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setLname(e.target.value)}
+              onChange={(e) => setLname(e.target.value)}
             />
             <br />
             <TextField
@@ -254,12 +268,12 @@ function Signup() {
               value={dob}
               inputRef={dobfield}
               inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
-              onChange={e => setDob(e.target.value)}
+              onChange={(e) => setDob(e.target.value)}
             />
             <br />
 
             <div id="previewtext">Add a profile picture:</div>
-            <img id="preview-dp" src={img} />
+            <img alt="preview" id="preview-dp" src={img} />
             <Button variant="contained" component="label">
               Upload File
               <input
@@ -267,7 +281,7 @@ function Signup() {
                 id="dp"
                 accept="image/png, image/jpeg, image/jpg"
                 hidden
-                onChange={data => {
+                onChange={(data) => {
                   changeImage(data);
                 }}
               />

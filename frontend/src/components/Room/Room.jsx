@@ -10,16 +10,16 @@ import {
   Tooltip
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, Navigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { connect } from "twilio-video";
 
 import { AuthContext } from "../../context/AuthProvider";
 import Participant from "../Participant/Participant";
+import { useMultiplayerState } from "../Whiteboard/useMultiplayerState";
 import Whiteboard from "../Whiteboard/Whiteboard";
 import HostControls from "./HostControls";
 import LocalControls from "./LocalControls";
 import "./Room.css";
-import { useMultiplayerState } from "../Whiteboard/useMultiplayerState";
 
 import { TDExportType } from "@tldraw/tldraw";
 

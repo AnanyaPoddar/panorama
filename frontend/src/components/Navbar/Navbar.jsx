@@ -1,14 +1,9 @@
-import { useState, useContext, useEffect } from "react";
 import {
-  AppBar,
-  Toolbar,
-  Button,
-  ThemeProvider,
-  createTheme,
-  IconButton,
-  Avatar
+  AppBar, Avatar, Button, createTheme,
+  IconButton, ThemeProvider, Toolbar
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
 import "./Navbar.css";
 

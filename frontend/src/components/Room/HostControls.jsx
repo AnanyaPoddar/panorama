@@ -11,9 +11,6 @@ import {
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
 
-import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from "../CallSummary/verificationWorker";
-import { TDExportType } from "@tldraw/tldraw";
 
 const HostControls = ({ id }) => {
   const { user } = useContext(AuthContext);

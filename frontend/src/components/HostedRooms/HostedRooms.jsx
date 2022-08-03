@@ -1,23 +1,18 @@
-import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthProvider";
-import * as React from "react";
+import { Button, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { ToggleButtonGroup, ToggleButton, Button } from "@mui/material";
+import Toolbar from "@mui/material/Toolbar";
+import * as React from "react";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthProvider";
 
-import JoinRoom from "../../components/JoinRoom/JoinRoom";
 import CreateRoom from "../../components/CreateRoom/CreateRoom";
-import WhitelistTable from "../../components/WhitelistTable/WhitelistTable";
+import JoinRoom from "../../components/JoinRoom/JoinRoom";
 import "./HostedRooms.css";
 
 const drawerWidth = 240;

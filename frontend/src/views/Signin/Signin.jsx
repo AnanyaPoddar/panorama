@@ -1,11 +1,9 @@
-import { useState } from "react";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { AuthContext } from "../../context/AuthProvider";
-import { ToggleButtonGroup, ToggleButton } from "@mui/material";
-import Signup from "../../components/Signup/Signup";
 import Login from "../../components/Login/Login";
+import Signup from "../../components/Signup/Signup";
+import { AuthContext } from "../../context/AuthProvider";
 import "./Signin.css";
 
 const Signin = () => {

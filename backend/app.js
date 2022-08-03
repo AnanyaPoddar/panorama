@@ -30,12 +30,12 @@ app.use(
   cors({
     origin: "https://panoramas.social",
     methods: "GET,POST,PUT,DELETE, PATCH",
-    credentials: true
+    credentials: true,
   })
 );
 
 //Again required for CORS
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "https://panoramas.social");
   res.header(
     "Access-Control-Allow-Methods",
@@ -48,7 +48,7 @@ app.use(function(req, res, next) {
 console.log(process.env.DATABASE_URL);
 
 //middleware
-const isAuthenticated = function(req, res, next) {
+const isAuthenticated = function (req, res, next) {
   if (!req.session.user) {
     return res.status(401).json({ errors: "Access Denied" });
   }
@@ -56,7 +56,7 @@ const isAuthenticated = function(req, res, next) {
 };
 
 //Get the current user
-app.get("/api/user", function(req, res) {
+app.get("/api/user", function (req, res) {
   if (req.session.user) {
     return res.status(200).json(req.session.user);
   } else {
@@ -70,7 +70,7 @@ const { Storage } = require("@google-cloud/storage");
 // Instantiate a storage client
 const storage = new Storage({
   projectId: "true-oasis-357701",
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
 
 // Multer is required to process file uploads and make them available via
@@ -78,8 +78,8 @@ const storage = new Storage({
 const multer = Multer({
   storage: Multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // no larger than 5mib,
-  }
+    fileSize: 5 * 1024 * 1024, // no larger than 5mib,
+  },
 });
 
 // A bucket is a container for objects (files).
@@ -104,7 +104,7 @@ const accessTokens = {};
 mongoose.connect(mongoString);
 const database = mongoose.connection;
 
-database.on("error", error => {
+database.on("error", (error) => {
   console.log("error is:" + error);
   console.error(error);
 });
@@ -117,7 +117,7 @@ app.use(
   session({
     secret: process.env.SECRET_KEY,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
   })
 );
 
@@ -125,13 +125,13 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   console.log("HTTP request", req.session.user, req.method, req.url, req.body);
   next();
 });
 
 // get the current user of the app
-app.get("/api/user", function(req, res) {
+app.get("/api/user", function (req, res) {
   if (req.session.user) {
     return res.status(200).json(req.session.user);
   } else {
@@ -144,7 +144,7 @@ app.get("/api/room/:roomId", isAuthenticated, (req, res) => {
   client.video.v1
     .rooms(req.params.roomId)
     .fetch()
-    .then(room => res.status(200).send(JSON.stringify({ room: room })))
+    .then((room) => res.status(200).send(JSON.stringify({ room: room })))
     .catch(() => {
       res.status(404).send(JSON.stringify({ err: "Room not found" }));
     });
@@ -155,16 +155,16 @@ app.get("/api/room/:roomId/completed", isAuthenticated, (req, res) => {
   let found = false;
   client.video.v1.rooms
     .list({
-      status: "completed"
+      status: "completed",
     })
-    .then(rooms => {
-      rooms.forEach(r => {
+    .then((rooms) => {
+      rooms.forEach((r) => {
         if (r.uniqueName === req.params.roomId) {
           found = true;
           client.video.v1
             .rooms(r.sid)
             .fetch()
-            .then(room => {
+            .then((room) => {
               return res.status(200).send(JSON.stringify({ room: room }));
             })
             .catch(() => {
@@ -191,27 +191,27 @@ app.get("/api/room/:roomId/participants", isAuthenticated, (req, res) => {
   client.video.v1
     .rooms(roomId)
     .participants.list({ status: "connected" })
-    .then(participants => {
+    .then((participants) => {
       const sendBack = [];
-      participants.forEach(p => {
+      participants.forEach((p) => {
         sendBack.push(p.identity);
       });
       return res.status(200).send(JSON.stringify({ data: sendBack }));
     })
-    .catch(err => {
+    .catch((err) => {
       res.status(500).send(JSON.stringify({ err: err }));
     });
 });
 
 //Get all whitelisted users of a room
 app.get("/api/room/:roomId/whitelist", (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function(err, room) {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
       if (!room.whitelistedUsers.includes(req.query.identity))
         res.status(403).send(
           JSON.stringify({
-            err: "Only whitelisted users can access this information"
+            err: "Only whitelisted users can access this information",
           })
         );
       else {
@@ -223,7 +223,7 @@ app.get("/api/room/:roomId/whitelist", (req, res) => {
 
 //end room, all connected participants will be disconnected; this is restricted to host of the room
 app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function(err, room) {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
       if (room.host !== req.session.user)
@@ -234,10 +234,10 @@ app.delete("/api/room/:roomId", isAuthenticated, (req, res) => {
         client.video.v1
           .rooms(req.params.roomId)
           .update({ status: "completed" })
-          .then(room =>
+          .then((room) =>
             res.status(200).send(JSON.stringify({ room: room.uniqueName }))
           )
-          .catch(err => {
+          .catch((err) => {
             res.status(500).send(JSON.stringify({ err: err }));
           });
       }
@@ -252,13 +252,13 @@ app.delete(
   (req, res) => {
     const roomId = req.params.roomId;
     const participant = req.params.participantName;
-    rooms.findOne({ id: req.params.roomId }, function(err, room) {
+    rooms.findOne({ id: req.params.roomId }, function (err, room) {
       if (err) res.status(500).send(err);
       if (room) {
         if (room.host !== req.session.user)
           return res.status(403).send(
             JSON.stringify({
-              err: "Only hosts can remove a participant from a room"
+              err: "Only hosts can remove a participant from a room",
             })
           );
         else {
@@ -266,15 +266,15 @@ app.delete(
             .rooms(roomId)
             .participants(participant)
             .update({ status: "disconnected" })
-            .then(p => {
+            .then((p) => {
               res.status(200).send(
                 JSON.stringify({
                   msg:
-                    "Removed participant " + participant + " with sid " + p.sid
+                    "Removed participant " + participant + " with sid " + p.sid,
                 })
               );
             })
-            .catch(err => {
+            .catch((err) => {
               res.status(500).send(JSON.stringify({ err: err }));
             });
         }
@@ -289,10 +289,10 @@ app.post("/api/room/:roomId/token", isAuthenticated, (req, res) => {
   const identity = req.session.user;
   const token = getVideoToken(identity, roomId);
 
-  rooms.findOne({ id: roomId }, function(err2, data) {
+  rooms.findOne({ id: roomId }, function (err2, data) {
     if (err2) res.status(500).send(JSON.stringify({ err: err2 }));
     if (data) {
-      users.findOne({ email: identity }, function(err, user) {
+      users.findOne({ email: identity }, function (err, user) {
         if (err) res.status(500).send(JSON.stringify({ err: err }));
         if (!user) return res.status(401).json({ err: "access denied" });
         data.save();
@@ -311,9 +311,9 @@ app.post("/api/room", isAuthenticated, (req, res) => {
   // store room in database -> TO DO: fix so that this isnt upon generation, but upon host joining room
   rooms.create(
     { id: roomId, name: req.body.roomName, whitelistedUsers: req.body.users },
-    function(err2, createdRoom) {
+    function (err2, createdRoom) {
       if (err2) return res.status(500).send(JSON.stringify({ err: err2 }));
-      users.findOne({ email: identity }, function(err, user) {
+      users.findOne({ email: identity }, function (err, user) {
         if (err) return res.status(500).send(JSON.stringify({ err: err }));
         createdRoom.host = identity;
         createdRoom.save();
@@ -346,7 +346,7 @@ app.post("/api/upload", multer.single("file"), (req, res, next) => {
   const blob = bucket.file(filename.replace(/\s+/g, ""));
   const blobStream = blob.createWriteStream();
 
-  blobStream.on("error", err => {
+  blobStream.on("error", (err) => {
     next(err);
   });
 
@@ -362,8 +362,8 @@ app.post("/api/upload", multer.single("file"), (req, res, next) => {
 });
 
 //Get the profile picture of the current logged-in user
-app.get("/api/users/me/profilePic", function(req, res) {
-  users.findOne({ email: req.session.user }, function(err3, user) {
+app.get("/api/users/me/profilePic", function (req, res) {
+  users.findOne({ email: req.session.user }, function (err3, user) {
     if (err3) return res.status(500).json({ re: "server", message: err3 });
     if (user) {
       return res.status(200).json({ image: user.dp });
@@ -372,13 +372,13 @@ app.get("/api/users/me/profilePic", function(req, res) {
 });
 
 // get summary data
-app.get("/api/room/summary/:roomId", function(req, res) {
+app.get("/api/room/summary/:roomId", function (req, res) {
   client.video.v1.rooms
     .list({
-      status: "completed"
+      status: "completed",
     })
-    .then(rooms => {
-      rooms.forEach(r => {
+    .then((rooms) => {
+      rooms.forEach((r) => {
         if (r.uniqueName === req.params.roomId) {
           const duration =
             "" +
@@ -391,9 +391,9 @@ app.get("/api/room/summary/:roomId", function(req, res) {
           client.video.v1
             .rooms(r.sid)
             .participants.list()
-            .then(participants => {
+            .then((participants) => {
               const sendBack = [];
-              participants.forEach(p => {
+              participants.forEach((p) => {
                 if (!sendBack.includes(p.identity)) {
                   sendBack.push(p.identity);
                 }
@@ -416,7 +416,7 @@ app.get("/api/room/summary/:roomId", function(req, res) {
 });
 
 // sign up route
-app.post("/api/users", multer.single("file"), function(req, res, next) {
+app.post("/api/users", multer.single("file"), function (req, res, next) {
   // check for missing info
   if (!("identity" in req.body))
     return res.status(422).json({ re: "email", message: "email is missing" });
@@ -435,7 +435,7 @@ app.post("/api/users", multer.single("file"), function(req, res, next) {
   const blob = bucket.file(req.file.originalname.replace(/\s+/g, ""));
   const blobStream = blob.createWriteStream();
 
-  blobStream.on("error", err => {
+  blobStream.on("error", (err) => {
     next(err);
   });
 
@@ -449,42 +449,42 @@ app.post("/api/users", multer.single("file"), function(req, res, next) {
     let email = req.body.identity;
 
     // check to see if email is already in use
-    users.findOne({ isLinkedinUser: false, email: email }, function(
-      err3,
-      user
-    ) {
-      if (err3) return res.status(500).json({ re: "server", message: err3 });
-      if (user) {
-        return res.status(409).json({
-          re: "email",
-          message: "an account with this email already exists"
+    users.findOne(
+      { isLinkedinUser: false, email: email },
+      function (err3, user) {
+        if (err3) return res.status(500).json({ re: "server", message: err3 });
+        if (user) {
+          return res.status(409).json({
+            re: "email",
+            message: "an account with this email already exists",
+          });
+        }
+        // hash the password
+        const saltRounds = 10;
+        bcrypt.hash(password, saltRounds, function (err, hash) {
+          // insert user
+          users.create(
+            {
+              isLinkedinUser: false,
+              password: hash,
+              email: email,
+              firstname: req.body.firstname,
+              lastname: req.body.lastname,
+              dob: req.body.dob,
+              dp: publicUrl,
+              isVerified: false,
+            },
+            function (err2, userCreated) {
+              if (err2) return res.status(500).json({ err: err2 });
+              req.session.user = userCreated.email;
+              return res
+                .status(200)
+                .json({ message: "signup success", email: userCreated.email });
+            }
+          );
         });
       }
-      // hash the password
-      const saltRounds = 10;
-      bcrypt.hash(password, saltRounds, function(err, hash) {
-        // insert user
-        users.create(
-          {
-            isLinkedinUser: false,
-            password: hash,
-            email: email,
-            firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            dob: req.body.dob,
-            dp: publicUrl,
-            isVerified: false
-          },
-          function(err2, userCreated) {
-            if (err2) return res.status(500).json({ err: err2 });
-            req.session.user = userCreated.email;
-            return res
-              .status(200)
-              .json({ message: "signup success", email: userCreated.email });
-          }
-        );
-      });
-    });
+    );
   });
 
   blobStream.end(req.file.buffer);
@@ -503,46 +503,32 @@ app.post("/api/login", (req, res) => {
   let password = req.body.password;
 
   // retrieve user from the database
-  users.findOne({ isLinkedinUser: false, email: identity }, function(
-    err,
-    user
-  ) {
-    if (err) return res.status(500).json({ error: err });
-    if (!user) return res.status(401).json({ error: "access denied" });
-    if (!user.isVerified)
-      return res.status(403).json({ error: "email not verified" });
-    let hash = user.password;
-    bcrypt.compare(password, hash, function(err, result) {
-      if (!result) {
-        return res.status(401).json({ error: "access denied" });
-      }
-      req.session.user = user.email;
-      return res.status(200).json(user);
-    });
-  });
+  users.findOne(
+    { isLinkedinUser: false, email: identity },
+    function (err, user) {
+      if (err) return res.status(500).json({ error: err });
+      if (!user) return res.status(401).json({ error: "access denied" });
+      if (!user.isVerified)
+        return res.status(403).json({ error: "email not verified" });
+      let hash = user.password;
+      bcrypt.compare(password, hash, function (err, result) {
+        if (!result) {
+          return res.status(401).json({ error: "access denied" });
+        }
+        req.session.user = user.email;
+        return res.status(200).json(user);
+      });
+    }
+  );
 });
 
 // get list of users
-app.get("/api/users", function(req, res, next) {
-  users.find({}, function(err, users) {
+app.get("/api/users", function (req, res, next) {
+  users.find({}, function (err, users) {
     if (err) return res.status(500).json({ re: "server", message: err });
     return res.status(200).send({ users: users });
   });
 });
-
-// get room participants
-/*app.get("/api/room/:roomId/participants", (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function (err, data) {
-    if (err) return res.status(500).send(JSON.stringify({ err: err }));
-    return res.status(200).send(
-      JSON.stringify({
-        
-      })
-    );
-  });
-});*/
-
-// email verification
 
 // initialize linkedin strategy
 passport.use(
@@ -551,14 +537,14 @@ passport.use(
       clientID: process.env.LINKEDIN_KEY,
       clientSecret: process.env.LINKEDIN_SECRET,
       callbackURL: "https://api.panoramas.social/api/linkedin/auth/callback",
-      scope: ["w_member_social", "r_emailaddress", "r_liteprofile"]
+      scope: ["w_member_social", "r_emailaddress", "r_liteprofile"],
     },
-    function(accessToken, refreshToken, profile, done) {
+    function (accessToken, refreshToken, profile, done) {
       accessTokens[profile.id] = accessToken;
-      process.nextTick(function() {
+      process.nextTick(function () {
         users
           .findOne({ isLinkedinUser: true, linkedinId: profile.id })
-          .then(user => {
+          .then((user) => {
             if (user) {
               //it checks if the user is saved in the database
               done(null, user);
@@ -569,9 +555,9 @@ passport.use(
                   linkedinId: profile.id,
                   email: profile.emails[0].value,
                   firstname: profile.name.givenName,
-                  lastname: profile.name.familyName
+                  lastname: profile.name.familyName,
                 },
-                function(err2, userCreated) {
+                function (err2, userCreated) {
                   if (err2) return res.status(500).end(err2);
                   done(null, userCreated);
                 }
@@ -584,28 +570,29 @@ passport.use(
 );
 
 // authenticate with linkedin
-app.get("/api/linkedin/auth", passport.authenticate("linkedin"), function(
-  req,
-  res
-) {});
+app.get(
+  "/api/linkedin/auth",
+  passport.authenticate("linkedin"),
+  function (req, res) {}
+);
 
 // callback function for when authentication is completed
 app.get(
   "/api/linkedin/auth/callback",
   passport.authenticate("linkedin", {
     successRedirect: "https://panoramas.social/signin",
-    failureRedirect: "https://panoramas.social"
+    failureRedirect: "https://panoramas.social",
   })
 );
 
 // adds user id to the session
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
   done(null, user._id);
 });
 
 // retrieves the user object
-passport.deserializeUser(function(id, done) {
-  users.findOne({ isLinkedinUser: true, _id: id }).then(user => {
+passport.deserializeUser(function (id, done) {
+  users.findOne({ isLinkedinUser: true, _id: id }).then((user) => {
     if (user) {
       done(null, user);
     }
@@ -618,14 +605,14 @@ app.get("/api/linkedin/auth/success", (req, res) => {
     return res.status(401).end("access denied");
   }
   req.session.user = req.user.email;
-  users.findOne({ isLinkedinUser: true, _id: req.user._id }, function(
-    err,
-    user
-  ) {
-    if (err) return res.status(500).end(err);
-    if (!user) return res.status(401).end("access denied");
-    return res.status(200).json(user);
-  });
+  users.findOne(
+    { isLinkedinUser: true, _id: req.user._id },
+    function (err, user) {
+      if (err) return res.status(500).end(err);
+      if (!user) return res.status(401).end("access denied");
+      return res.status(200).json(user);
+    }
+  );
 });
 
 // clear out the session
@@ -633,7 +620,7 @@ app.get("/api/logout", (req, res) => {
   if (req.user && req.user.isLinkedinUser) {
     delete accessTokens[req.user.linkedinId];
   }
-  req.logout(function(err) {
+  req.logout(function (err) {
     if (err) {
       return next(err);
     }
@@ -642,32 +629,32 @@ app.get("/api/logout", (req, res) => {
 });
 
 app.post("/api/invite", (req, res) => {
-  users.find({}, function(err, items) {
-    users.findOne({ email: req.body.userEmail }, function(err2, user) {
+  users.find({}, function (err, items) {
+    users.findOne({ email: req.body.userEmail }, function (err2, user) {
       const linkedinUsers = user.isLinkedinUser
         ? items.filter(
-            user => req.body.users.includes(user.email) && user.isLinkedinUser
+            (user) => req.body.users.includes(user.email) && user.isLinkedinUser
           )
         : [];
       const panoramaUsers = items.filter(
-        user => req.body.users.includes(user.email) && !user.isLinkedinUser
+        (user) => req.body.users.includes(user.email) && !user.isLinkedinUser
       );
 
       if (linkedinUsers.length) {
         let totalLength = 0;
         const annotations = [];
-        linkedinUsers.forEach(item => {
+        linkedinUsers.forEach((item) => {
           let currLength = item.firstname.length + item.lastname.length + 1;
           totalLength += currLength + 1;
           annotations.push({
             entity: `urn:li:person:${item.linkedinId}`,
             length: currLength,
-            start: totalLength - currLength - 1
+            start: totalLength - currLength - 1,
           });
         });
 
         let text = "";
-        linkedinUsers.forEach(item => {
+        linkedinUsers.forEach((item) => {
           text += `${item.firstname} ${item.lastname} `;
         });
         text +=
@@ -677,38 +664,38 @@ app.post("/api/invite", (req, res) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + accessTokens[user.linkedinId]
+            Authorization: "Bearer " + accessTokens[user.linkedinId],
           },
           body: JSON.stringify({
             distribution: {
-              linkedInDistributionTarget: {}
+              linkedInDistributionTarget: {},
             },
             owner: "urn:li:person:TUfYYAUNVP",
             subject: "Test Share Subject",
             text: {
               annotations: annotations,
-              text: text
-            }
-          })
+              text: text,
+            },
+          }),
         })
-          .then(response => {
+          .then((response) => {
             return response.json();
           })
-          .then(json => {
+          .then((json) => {
             return;
           })
-          .catch(error => {
+          .catch((error) => {
             console.error("Error:", error);
           });
       }
 
-      panoramaUsers.forEach(item => {
+      panoramaUsers.forEach((item) => {
         const html = `<div>Hello ${item.firstname} ${item.lastname},<br/><br/>Would you like to join ${user.firstname} ${user.lastname} on a whiteboarding session on Panorama (<a href="panoramas.social">panoramas.social</a>)? Here's the room id: ${req.body.roomID}<br/><br/>Thank you,<br/><br/>Panorama Team<div>`;
         const mailData = {
           from: process.env.EMAIL,
           to: item.email,
           subject: `${item.firstname} ${item.lastname} | Invitation to Panorama Session From`,
-          html: html
+          html: html,
         };
 
         transporter.sendMail(mailData, (error, info) => {
@@ -725,26 +712,26 @@ app.post("/api/invite", (req, res) => {
 
 app.post("/api/linkedin/post", (req, res) => {
   if (req.user && req.user.isLinkedinUser) {
-    users.find({ isLinkedinUser: true }, function(err, users) {
+    users.find({ isLinkedinUser: true }, function (err, users) {
       if (err) return res.status(500).end(err);
 
-      const match = users.filter(user => req.body.users.includes(user.email));
+      const match = users.filter((user) => req.body.users.includes(user.email));
 
       if (match.length) {
         let totalLength = 0;
         const annotations = [];
-        match.forEach(item => {
+        match.forEach((item) => {
           let currLength = item.firstname.length + item.lastname.length + 1;
           totalLength += currLength + 1;
           annotations.push({
             entity: `urn:li:person:${item.linkedinId}`,
             length: currLength,
-            start: totalLength - currLength - 1
+            start: totalLength - currLength - 1,
           });
         });
 
         let text = "";
-        match.forEach(item => {
+        match.forEach((item) => {
           text += `${item.firstname} ${item.lastname} `;
         });
         text +=
@@ -755,27 +742,27 @@ app.post("/api/linkedin/post", (req, res) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + accessTokens[req.user.linkedinId]
+            Authorization: "Bearer " + accessTokens[req.user.linkedinId],
           },
           body: JSON.stringify({
             distribution: {
-              linkedInDistributionTarget: {}
+              linkedInDistributionTarget: {},
             },
             owner: "urn:li:person:TUfYYAUNVP",
             subject: "Test Share Subject",
             text: {
               annotations: annotations,
-              text: text
-            }
-          })
+              text: text,
+            },
+          }),
         })
-          .then(response => {
+          .then((response) => {
             return response.json();
           })
-          .then(json => {
+          .then((json) => {
             return res.status(200).send({ message: "Invitations are sent" });
           })
-          .catch(error => {
+          .catch((error) => {
             console.error("Error:", error);
           });
       }
@@ -784,19 +771,19 @@ app.post("/api/linkedin/post", (req, res) => {
 });
 
 app.post("/api/email/invite", (req, res) => {
-  users.find({ isLinkedinUser: false }, function(err, items) {
+  users.find({ isLinkedinUser: false }, function (err, items) {
     if (err) return res.status(500).end(err);
 
-    const match = items.filter(item => req.body.users.includes(item.email));
-    users.findOne({ email: req.body.userEmail }, function(err2, user) {
+    const match = items.filter((item) => req.body.users.includes(item.email));
+    users.findOne({ email: req.body.userEmail }, function (err2, user) {
       if (err2) return res.status(500).end(err2);
-      match.forEach(item => {
+      match.forEach((item) => {
         const html = `<div>Hello ${item.firstname} ${item.lastname},<br/><br/>Would you like to join ${user.firstname} ${user.lastname} on a whiteboarding session on Panorama (<a href="panoramas.social">panoramas.social</a>)? Here's the room id: ${req.body.roomID}<br/><br/>Thank you,<br/><br/>Panorama Team<div>`;
         const mailData = {
           from: process.env.EMAIL,
           to: item.email,
           subject: `${item.firstname} ${item.lastname} | Invitation to Panorama Session From`,
-          html: html
+          html: html,
         };
 
         transporter.sendMail(mailData, (error, info) => {
@@ -810,29 +797,29 @@ app.post("/api/email/invite", (req, res) => {
   });
 });
 
-// email stuff
 server.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
 });
 
+// email stuff
 const transporter = nodemailer.createTransport({
   port: 465,
   host: "smtp.gmail.com",
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.PASS
+    pass: process.env.PASS,
   },
-  secure: true // upgrades later with STARTTLS -- change this based on the PORT
+  secure: true, // upgrades later with STARTTLS -- change this based on the PORT
 });
 
 // send email to participants
-app.post("/api/text-mail", function(req, res, next) {
+app.post("/api/text-mail", function (req, res, next) {
   const { email, html } = req.body;
   const mailData = {
     from: process.env.EMAIL,
     to: email,
     subject: "Panorama video call summary",
-    html: html
+    html: html,
   };
 
   transporter.sendMail(mailData, (error, info) => {
@@ -846,7 +833,7 @@ app.post("/api/text-mail", function(req, res, next) {
 });
 
 app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
-  rooms.findOne({ id: req.params.roomId }, function(err, room) {
+  rooms.findOne({ id: req.params.roomId }, function (err, room) {
     if (err) return res.status(500).send(err);
     if (room) {
       return res.status(200).send(JSON.stringify({ host: room.host }));
@@ -856,11 +843,11 @@ app.get("/api/room/:roomId/host", isAuthenticated, (req, res) => {
 
 app.post("/api/room/hosted", isAuthenticated, (req, res) => {
   const host = req.session.user;
-  rooms.find({ host: host }, function(err, hostedRooms) {
+  rooms.find({ host: host }, function (err, hostedRooms) {
     if (err) return res.status(500).send(err);
     const roomnames = [];
     const roomids = [];
-    hostedRooms.forEach(r => {
+    hostedRooms.forEach((r) => {
       roomnames.push(r.name);
       roomids.push(r.id);
     });
@@ -870,39 +857,41 @@ app.post("/api/room/hosted", isAuthenticated, (req, res) => {
 
 // verify email
 app.get("/api/:userId/verify/:token", (req, res) => {
-  users.findOne({ _id: req.params.userId }, function(err, found) {
+  users.findOne({ _id: req.params.userId }, function (err, found) {
     if (err) return res.status(500).send({ error: "server issue" });
     if (!found) return res.status(400).send({ error: "Invalid link" });
-    token.findOne({ user: found._id, token: req.params.token }, function(
-      err2,
-      tok
-    ) {
-      if (err2) return res.status(500).send({ error: "Server Issue" });
-      if (!tok) return res.status(404).send({ error: "Invalid link" });
-      found.isVerified = true;
-      found.save();
-      token.deleteOne({ token: req.params.token }, function(err3, tokfound) {
-        if (err3) return res.status(500).send({ error: "Server Issue" });
-        return res.status(200).send({ message: "Email verified successfully" });
-      });
-    });
+    token.findOne(
+      { user: found._id, token: req.params.token },
+      function (err2, tok) {
+        if (err2) return res.status(500).send({ error: "Server Issue" });
+        if (!tok) return res.status(404).send({ error: "Invalid link" });
+        found.isVerified = true;
+        found.save();
+        token.deleteOne({ token: req.params.token }, function (err3, tokfound) {
+          if (err3) return res.status(500).send({ error: "Server Issue" });
+          return res
+            .status(200)
+            .send({ message: "Email verified successfully" });
+        });
+      }
+    );
   });
 });
 
 app.post("/api/verification-mail", (req, res) => {
-  users.findOne({ email: req.body.identity }, function(err, userFound) {
+  users.findOne({ email: req.body.identity }, function (err, userFound) {
     if (err) return res.status(500).json({ error: err });
     if (!userFound) return res.status(404).json({ error: "Not found" });
 
     token.create(
       { user: userFound._id, token: crypto.randomBytes(32).toString("hex") },
-      function(err, tok) {
+      function (err, tok) {
         const url = `https://panoramas.social/users/${userFound._id}/verify/${tok.token}`;
         const mailData = {
           from: process.env.EMAIL,
           to: userFound.email,
           subject: "Panorama verification",
-          html: `Hello ${userFound.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`
+          html: `Hello ${userFound.firstname}, <br/> Click on <a href= ${url}> this link </a> to verify your email.`,
         };
 
         transporter.sendMail(mailData, (error, info) => {

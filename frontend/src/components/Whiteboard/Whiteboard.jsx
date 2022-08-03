@@ -1,20 +1,19 @@
-import * as React from "react";
-import { Tldraw, TldrawApp, TDExport, TDExportType } from "@tldraw/tldraw";
-import { useMultiplayerState } from "./useMultiplayerState";
-import { useEffect, useState, useCallback, useContext } from "react";
-import Fab from "@mui/material/Fab";
-import "./Whiteboard.css";
-import DialogTitle from "@mui/material/DialogTitle";
-import Dialog from "@mui/material/Dialog";
+import AddIcon from "@mui/icons-material/Add";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
-import { IconButton } from "@mui/material";
-import mindmap from "../../assets/mindmap.png";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import Fab from "@mui/material/Fab";
+import { TDExportType, Tldraw } from "@tldraw/tldraw";
+import * as React from "react";
+import { useContext, useEffect, useState } from "react";
+import { kanbanTemplate } from "../../assets/kanban.jsx";
 import kanban from "../../assets/kanban.png";
 import { mindmapTemplate } from "../../assets/mindmap.jsx";
-import { kanbanTemplate } from "../../assets/kanban.jsx";
-import AddIcon from "@mui/icons-material/Add";
+import mindmap from "../../assets/mindmap.png";
+import { useMultiplayerState } from "./useMultiplayerState";
+import "./Whiteboard.css";
 
 import { AuthContext } from "../../context/AuthProvider";
 
@@ -59,7 +58,7 @@ function SimpleDialog(props) {
     onClose(template);
   };
 
-  const handleListItemClick = value => {
+  const handleListItemClick = (value) => {
     onClose(value);
   };
   return (
@@ -128,33 +127,33 @@ const Whiteboard = ({ roomId }) => {
   useEffect(() => {
     // set the host
     fetch(`https://api.panoramas.social/api/room/${roomId}/host`, {
-      credentials: "include"
+      credentials: "include",
     })
-      .then(res => {
+      .then((res) => {
         return res.json();
       })
-      .then(json => {
+      .then((json) => {
         if (user.email === json.host) {
           fetch(`https://api.panoramas.social/api/room/${roomId}/completed`, {
-            credentials: "include"
-          }).then(res => {
-            if (res.status == 200) {
+            credentials: "include",
+          }).then((res) => {
+            if (res.status === 200) {
               setOpen(false);
               return res.json();
-            } else if (res.status == 404) {
+            } else if (res.status === 404) {
               setOpen(true);
             }
           });
         }
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }, []);
 
-  const handleClose = value => {
+  const handleClose = (value) => {
     setOpen(false);
-    if (value == "mindmap") {
+    if (value === "mindmap") {
       setTemplate(mindmapTemplate);
-    } else if (value == "kanban") {
+    } else if (value === "kanban") {
       setTemplate(kanbanTemplate);
       setChoseTemplate(true);
     } else {
@@ -167,7 +166,7 @@ const Whiteboard = ({ roomId }) => {
   };
 
   useEffect(() => {
-    if (wbMount == null) setwbMount({ onMount });
+    if (wbMount === null) setwbMount({ onMount });
   });
 
   const handleExport = () => {

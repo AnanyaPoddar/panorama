@@ -1,11 +1,9 @@
-import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthProvider";
-import { DataGrid } from "@mui/x-data-grid";
 import { TextField } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthProvider";
 
 import "../Form.css";
-import { callbackify } from "util";
 
 const WhitelistTable = props => {
   const { user } = useContext(AuthContext);

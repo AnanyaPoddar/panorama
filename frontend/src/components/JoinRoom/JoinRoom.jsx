@@ -1,10 +1,10 @@
-import { useState, useContext } from "react";
 import { Button, TextField } from "@mui/material";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { AuthContext } from "../../context/AuthProvider";
 import "../Form.css";
 import Room from "../Room/Room";
-import { AuthContext } from "../../context/AuthProvider";
 
 const JoinRoom = () => {
   const { user } = useContext(AuthContext);
