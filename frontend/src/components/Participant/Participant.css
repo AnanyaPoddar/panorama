@@ -1,0 +1,13 @@
+.participant {
+  /* height: 100%; */
+  width: 100%;
+  position: relative;
+}
+
+.participant-name {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: white;
+  background-color: black;
+}

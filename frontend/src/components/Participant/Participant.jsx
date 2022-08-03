@@ -1,15 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import "./Participant.css";
 
-const Participant = ({ participant, videoOn, audioOn }) => {
+const Participant = ({ participant }) => {
   const [videos, setVideos] = useState([]);
   const [audios, setAudios] = useState([]);
   const videoRef = useRef();
   const audioRef = useRef();
-
-  useEffect(() => {
-    if (!videoOn) setVideos([]);
-    if (!audioOn) setAudios([]);
-  }, [videoOn, audioOn]);
 
   const addTrack = (track) => {
     if (track.kind === "video") setVideos((videos) => [...videos, track]);
@@ -39,16 +35,25 @@ const Participant = ({ participant, videoOn, audioOn }) => {
       addTrack(track);
     });
 
+    //For own defined socket event when a user reshares their video
+    participant.on("videoTrackPublished", (track) => {
+      addTrack(track);
+    });
+
+    //For own defined event when a user unshares their video
+    participant.on("videoTrackUnpublished", (track) => {
+      removeTrack(track);
+    });
+
     participant.on("trackUnsubscribed", (track) => {
       removeTrack(track);
     });
-  }, [participant, videoOn, audioOn]);
+  }, [participant]);
 
   //attach video
   useEffect(() => {
     const video = videos[0];
     if (video) video.attach(videoRef.current);
-    console.log(videos);
   }, [videos]);
 
   useEffect(() => {
@@ -57,11 +62,11 @@ const Participant = ({ participant, videoOn, audioOn }) => {
   }, [audios]);
 
   return (
-    <>
-      <h3>{participant.identity}</h3>
-      {videoOn && <video ref={videoRef} autoPlay playsInline />}
-      {audioOn && <audio ref={audioRef} autoPlay />}
-    </>
+    <div className="participant">
+      <div className="participant-name">{participant.identity}</div>
+      <video ref={videoRef} autoPlay playsInline />
+      <audio ref={audioRef} autoPlay />
+    </div>
   );
 };
 

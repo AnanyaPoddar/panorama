@@ -1,191 +1,290 @@
-import { useState, useEffect } from "react";
-import { Button, Grid } from "@mui/material";
-import { ToggleButtonGroup, ToggleButton } from "@mui/material";
-import { Mic, MicOff, Videocam, VideocamOff } from "@mui/icons-material";
+import { ContentCopy } from "@mui/icons-material";
+import {
+  Alert,
+  Button,
+  Drawer,
+  IconButton,
+  Snackbar,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip
+} from "@mui/material";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
+import { connect } from "twilio-video";
 
-import "./Room.css";
+import { AuthContext } from "../../context/AuthProvider";
 import Participant from "../Participant/Participant";
 import Whiteboard from "../Whiteboard/Whiteboard";
-import WorkerBuilder from "../CallSummary/WorkerBuilder";
-import Worker from "../CallSummary/worker";
+import HostControls from "./HostControls";
+import LocalControls from "./LocalControls";
+import "./Room.css";
+import { useMultiplayerState } from "../Whiteboard/useMultiplayerState";
 
-const Room = ({ room, id, setRoom }) => {
-  //the mode can either be "draw" or "vid" corresponding to seeing the whiteboard or video
-  const [mode, setMode] = useState("vid");
+import { TDExportType } from "@tldraw/tldraw";
+
+const Room = () => {
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { app } = useMultiplayerState(id);
+
+  const [room, setRoom] = useState(null);
+  const [error, setError] = useState();
+  //set the host of the current room, check this against the current user to ensure that they are the same
+  const [host, setHost] = useState("");
+  //only available for the host, when they successfully kick out a participant
+  const [openKickedNotif, setOpenKickedNotif] = useState(false);
+
+  //collapsibleContent can either correspond to "metadata" - metadata of room including participants, or "vid" - to display paginated videos
+  const [collapsibleContent, setCollapsibleContent] = useState("vid");
 
   const [remoteParticipants, setRemoteParticipants] = useState([]);
   //audioOn set to true means unmuted
   const [audioOn, setAudioOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
-  const [participants, setParticipants] = useState([]);
-  const [participantEmails, setParticipantEmails] = useState([]);
+
+  const [redirect, setRedirect] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
+
+  //pass to LocalControls to change state from child to parent
+  const changeVideoOn = val => {
+    setVideoOn(val);
+  };
+  const changeAudioOn = val => {
+    setAudioOn(val);
+  };
+  const changeRoom = val => {
+    setRoom(val);
+  };
+
+  //get token to connect to room with given id
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/room/${id}/token`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+      .then(res => {
+        return res.json();
+      })
+      .then(json => {
+        connectToRoom(json.token);
+      })
+      .catch(err => setError(err));
+  }, []);
+
+  //A user can only connect to a room if they receive a valid token to access that room, hence "room" will always be null unless a user has a valid grant to a room
+  const connectToRoom = token => {
+    connect(token, { name: id })
+      .then(newRoom => {
+        setRoom(newRoom);
+      })
+      //Set the host of room, as hosts have extra controls including kicking out participants and ending call
+      .then(
+        fetch(`http://localhost:5000/api/room/${id}/host`, {
+          credentials: "include"
+        })
+          .then(res => {
+            return res.json();
+          })
+          .then(json => {
+            setHost(json.host);
+          })
+      )
+      .catch(err => console.error(err));
+  };
 
   useEffect(() => {
     const addParticipant = participant => {
       setRemoteParticipants(prev => [...prev, participant]);
     };
-
     const removeParticipant = participant => {
       participant.removeAllListeners();
       setRemoteParticipants(prev => prev.filter(p => p !== participant));
     };
-
     if (room) {
       room.participants.forEach(addParticipant);
+      //listen for changes in participants in room
       room.on("participantConnected", addParticipant);
       room.on("participantDisconnected", removeParticipant);
       //local participant disconnects
       window.addEventListener("pagehide", () => room.disconnect());
+      //Wait before redirecting
+      room.on("disconnected", () => {
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.email) {
+          app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 });
+
+          navigate(`/room/summary/${id}`);
+        } else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg(
+            "You have been disconnected from the room. Redirecting to lobby..."
+          );
+        }
+        //Wait until alert flashed before redirecting
+      });
+      room.on("roomEnded", () => {
+        //if the room was ended and the current user is the host, keep the host in the room, in an inactive state
+        if (host !== "" && host === user.email) {
+          navigate(`/room/summary/${id}`);
+        }
+        //if the room was ended by the host, and the current user is not the host, redirect to lobby.
+        else {
+          setTimeout(() => {
+            setRedirect(true);
+          }, 3000);
+          setAlertMsg("The host has ended the call. Redirecting to lobby...");
+        }
+      });
     }
   }, [room]);
 
-  const mute = () => {
-    room.localParticipant.audioTracks.forEach(publication =>
-      publication.track.disable()
+  const renderRemoteParticipants = remoteParticipants.map(participant => (
+    <Participant
+      key={participant.sid}
+      participant={participant}
+      videoOn={true}
+      audioOn={true}
+    />
+  ));
+
+  const kickParticipant = participant => {
+    //TODO: Handle errors
+    fetch(`http://localhost:5000/api/room/${id}/participants/${participant}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include"
+    })
+      .then(res => {
+        if (res.status === 200) {
+          setOpenKickedNotif(true);
+          renderSuccessfulKick(participant);
+        }
+      })
+      .catch(err => setError(err));
+  };
+
+  const renderSuccessfulKick = participant => {
+    //flash the "kicked participant out" notif for 3 seconds
+    setTimeout(() => {
+      setOpenKickedNotif(false);
+    }, 3000);
+    return (
+      <Snackbar
+        open={true}
+        autoHideDuration={4000}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right"
+        }}
+      >
+        <Alert severity="success">
+          {"Successfully kicked out participant " + participant}
+        </Alert>
+      </Snackbar>
     );
-    setAudioOn(false);
-  };
-
-  const unmute = () => {
-    room.localParticipant.audioTracks.forEach(publication =>
-      publication.track.enable()
-    );
-    setAudioOn(true);
-  };
-
-  const startVideo = () => {
-    room.localParticipant.videoTracks.forEach(publication => {
-      publication.track.enable();
-      publication.track.attach();
-    });
-    setVideoOn(true);
-  };
-
-  const stopVideo = () => {
-    room.localParticipant.videoTracks.forEach(publication => {
-      publication.track.disable();
-      publication.track.detach();
-    });
-    setVideoOn(false);
-  };
-
-  const leaveRoom = () => {
-    if (room.localParticipant.state === "connected") {
-      room.localParticipant.tracks.forEach(publication =>
-        publication.track.stop()
-      );
-      room.disconnect();
-    }
-    setRoom(null);
-  };
-  const sendSummary = () => {
-    fetch(`https://api.panoramas.social/api/room/${id}/participants`)
-      .then(res => res.json())
-      .then(json => {
-        const worker = new WorkerBuilder(Worker);
-        console.log("here", json.emails);
-        const emails = json.emails;
-        const names = json.names;
-        worker.postMessage({ emails, names });
-        worker.onerror = err => err;
-        worker.onmessage = e => {
-          console.log(e.data);
-          worker.terminate();
-        };
-      });
   };
 
   return (
     <div className="room page">
-      {room && (
-        <div>
-          <div className="room-invite">
-            <p>
-              <b>RoomId :</b> {id}
-            </p>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                navigator.clipboard.writeText(id);
-              }}
+      {/* TODO: Show errors if room actually could not be created or something */}
+      {user && !room && <h2>Connecting to room ...</h2>}
+      {user && room && (
+        <>
+          <Drawer variant="permanent" anchor="left" className="sidebar">
+            <div className="sidebar-top"></div>
+            <ToggleButtonGroup
+              color="primary"
+              value={collapsibleContent}
+              exclusive
+              onChange={e => setCollapsibleContent(e.target.value)}
             >
-              Copy Room Id
-            </Button>
-          </div>
-          <br />
-          <br />
-          <ToggleButtonGroup
-            color="primary"
-            value={mode}
-            exclusive
-            onChange={e => setMode(e.target.value)}
-          >
-            <ToggleButton value="vid">Videos</ToggleButton>
-            <ToggleButton value="draw">Whiteboard</ToggleButton>
-          </ToggleButtonGroup>
-          <br />
-          <br />
-          {mode === "vid" ? (
-            <div className="videos-container">
-              <div className="participant" id="local-user">
-                <Participant
-                  participant={room.localParticipant}
-                  videoOn={videoOn}
-                  audioOn={audioOn}
-                />
-              </div>
-              {remoteParticipants.map(participant => (
-                <div className="participant">
-                  <Participant
-                    key={participant.sid}
-                    participant={participant}
-                    videoOn={true}
-                    audioOn={true}
-                  />
+              <ToggleButton value="vid">Videos</ToggleButton>
+              <ToggleButton value="metadata">Metadata</ToggleButton>
+            </ToggleButtonGroup>
+            <br />
+            <br />
+            {collapsibleContent === "metadata" ? (
+              <div>
+                <div className="room-invite">
+                  <p>
+                    <b>RoomId :</b> {id}
+                  </p>
+                  <Tooltip title="Copy link">
+                    <IconButton
+                      onClick={() => navigator.clipboard.writeText(id)}
+                    >
+                      <ContentCopy />
+                    </IconButton>
+                  </Tooltip>
                 </div>
-              ))}
+                <br />
+                <hr />
+                <h4>Participants</h4>
+                <p>
+                  <b>{room.localParticipant.identity}</b>
+                </p>
+                <div className="participant-list">
+                  {/* Only allow hosts to kick participants out */}
+                  {host !== "" && host === user.email
+                    ? remoteParticipants.map(participant => (
+                        <div className="participant-in-list">
+                          <p>{participant.identity}</p>
+                          <Button
+                            color="error"
+                            variant="contained"
+                            onClick={() =>
+                              kickParticipant(participant.identity)
+                            }
+                          >
+                            Kick
+                          </Button>
+                        </div>
+                      ))
+                    : remoteParticipants.map(participant => (
+                        <p>{participant.identity}</p>
+                      ))}
+                </div>
+              </div>
+            ) : (
+              <div className="videos-container">
+                <div id="local-user">
+                  <Participant participant={room.localParticipant} />
+                </div>
+                {renderRemoteParticipants}
+              </div>
+            )}
+            <div className="controls">
+              <LocalControls
+                room={room}
+                audioOn={audioOn}
+                videoOn={videoOn}
+                setAudioOn={changeAudioOn}
+                setVideoOn={changeVideoOn}
+                setRoom={changeRoom}
+              />
+              {host !== "" && host === user.email && <HostControls id={id} />}
             </div>
-          ) : (
-            <Whiteboard roomId={id} />
+          </Drawer>
+          <Whiteboard roomId={id} />
+          {openKickedNotif && renderSuccessfulKick("user")}
+          {alertMsg !== "" && (
+            <Alert className="alert" severity="error">
+              {alertMsg}
+            </Alert>
           )}
+          {redirect && <Navigate to="/lobby" />}
           <br />
           <br />
-          <div className="controls">
-            {audioOn ? (
-              <Button variant="outlined" onClick={() => mute()}>
-                <MicOff /> Turn Mic Off
-              </Button>
-            ) : (
-              <Button variant="outlined" onClick={() => unmute()}>
-                <Mic /> Turn Mic On
-              </Button>
-            )}
-            {videoOn ? (
-              <Button variant="outlined" onClick={() => stopVideo()}>
-                <VideocamOff /> Turn Video Off
-              </Button>
-            ) : (
-              <Button variant="outlined" onClick={() => startVideo()}>
-                <Videocam /> Turn Video On
-              </Button>
-            )}
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => leaveRoom()}
-            >
-              Leave Call
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => sendSummary()}
-            >
-              Send Email
-            </Button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
