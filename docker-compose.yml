@@ -1,14 +1,28 @@
 version: "3"
 
 services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+
   frontend:
     container_name: frontend
     build: ./frontend
-    ports:
-      - 3000:3000
+    expose:
+      - 80
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      - VIRTUAL_HOST=localhost
 
   backend:
     container_name: backend

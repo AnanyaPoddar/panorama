@@ -1,0 +1,71 @@
+.inner {
+  text-align: center;
+  display: flex;
+  padding-right: 10%;
+  padding-left: 10%;
+  font-size: 20px;
+  font-family: "Avenir", "Franklin Gothic", Arial, sans-serif;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.error {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  color: #e04f5f;
+  padding-bottom: 10px;
+}
+
+.success {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  color: #2cad5b;
+  padding-bottom: 10px;
+}
+
+.page-heading {
+  font-size: 35px;
+}
+
+.link {
+  text-decoration: none;
+  font-weight: bold;
+  color: #3caba5;
+  cursor: pointer;
+}
+
+.errorIcon {
+  height: 17px;
+  width: 17px;
+  flex: 1;
+  padding-right: 5px;
+}
+.pass-desc {
+  font-size: 12px;
+  width: 350px;
+  padding-bottom: 20px;
+}
+
+#preview-dp {
+  width: 150px;
+  padding: 30px;
+}
+
+#previewtext {
+  font-size: 18px;
+}
+
+@font-face {
+  font-family: Avenir;
+  src: url(../../assets/fonts/AvenirLTStd-Roman.otf);
+}
+
+.msg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,75 +1,86 @@
 import { Button, TextField } from "@mui/material";
 import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
-import "../Form.css";
+import "../../components/Form.css";
+import errorIcon from "../../assets/exclamation-mark.png";
 import linkedinButton from "../../assets/linkedin-button.png";
+import validator from "validator";
+import "../Signup/Signup.css";
 
 function Login() {
   const { user, setUser } = useContext(AuthContext);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const navigate = useNavigate();
+
   const [errors, setErrors] = useState({});
   const [isSubmitted, setSubmit] = useState(false);
-
-  const [username, setUsername] = useState("");
-
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
   const handleSubmit = e => {
     //Prevent page reload
     e.preventDefault();
-    const creds = { username: username, password: pass };
+
+    if (!validator.isEmail(email)) {
+      setErrorMessage("Enter a valid email");
+      return;
+    }
+    if (pass === "") {
+      setErrorMessage("Missing password");
+      return;
+    }
+    const creds = { identity: email.toLowerCase().trim(), password: pass };
 
     // Fetch call to sign user in
-    fetch(`http://178.128.227.211:5000/api/login`, {
+    fetch(`https://api.panoramas.social/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify(creds)
     })
-      .then(response => response.json())
+      .then(response => {
+        if (response.status == 401) {
+          setErrorMessage("Invalid credentials");
+        } else if (response.status === 403) {
+          setErrorMessage("Email not verified");
+        } else {
+          return response.json();
+        }
+      })
       //TODO: Possibly check status is ok before rendering
       .then(json => {
-        setUser({ id: json._id, name: json.username });
+        if (json) {
+          setUser({ email: json.email });
+          navigate("/lobby");
+        }
       })
       .catch(error => {
         console.error("Error:", error);
       });
   };
 
-  const renderErrorMessage = message => <div className="error">{message}</div>;
-
-  // JSX code for login form
-  const renderForm = (
-    <div>
-      <form onSubmit={handleSubmit} className="form">
-        <TextField
-          variant="standard"
-          placeholder="Enter username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
-        <TextField
-          variant="standard"
-          type="password"
-          placeholder="Enter password"
-          value={pass}
-          onChange={e => setPass(e.target.value)}
-        />
-        <Button variant="outlined" type="submit">
-          Log In
-        </Button>
-      </form>
-    </div>
-  );
-
   return (
-    <div>
+    <div className="inner">
+      <div className="page-heading"> Welcome back! </div>
+      <div className="page-heading">Log in to get started. </div>
       <form onSubmit={handleSubmit} className="form">
+        <br />
+        {errorMessage && (
+          <p className="error">
+            {" "}
+            <img className="errorIcon" src={errorIcon}></img> {errorMessage}{" "}
+          </p>
+        )}
+
         <TextField
           variant="standard"
-          placeholder="Enter username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
+          placeholder="Enter email"
+          value={email}
+          inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
+          onChange={e => setEmail(e.target.value.trim())}
         />
         <br />
         <TextField
@@ -77,6 +88,7 @@ function Login() {
           type="password"
           placeholder="Enter password"
           value={pass}
+          inputProps={{ style: { fontSize: 20, fontFamily: "Avenir" } }}
           onChange={e => setPass(e.target.value)}
         />
         <br />
@@ -84,8 +96,8 @@ function Login() {
           Log In
         </Button>
         <br />
-        <a href="http://178.128.227.211:5000/api/linkedin/auth">
-          <img className="linkedinButton" src={linkedinButton} />
+        <a href="https://api.panoramas.social/api/linkedin/auth">
+          <img alt="linkedin" className="linkedinButton" src={linkedinButton} />
         </a>
       </form>
     </div>

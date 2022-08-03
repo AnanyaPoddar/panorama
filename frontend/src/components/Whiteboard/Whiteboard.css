@@ -1,0 +1,60 @@
+/* This is the generated class for the whiteboard */
+.c-jOyZnp {
+  height: 80vh;
+  width: 78%;
+  margin-left: 18%;
+  padding: 20px;
+  overflow: hidden;
+  left: 0;
+}
+
+.options {
+  position: absolute;
+  right: 120px;
+  bottom: 20px;
+}
+.help {
+  position: absolute;
+  right: 30px;
+  bottom: 20px;
+}
+
+.cards {
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+}
+
+.card {
+  margin: 10px;
+  width: 200px;
+  margin-top: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.addicon {
+  height: 140px;
+}
+
+.card:hover {
+  box-shadow: 5px 5px 5px #b0b0b0;
+}
+
+.inactive .c-jOyZnp {
+  height: 80vh;
+  width: 100%;
+  margin-left: 0;
+  left: 0;
+}
+
+.helpbox {
+  text-align: center;
+}
+
+.helptext {
+  padding: 20px;
+  padding-top: 0px;
+}
