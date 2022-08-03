@@ -67,7 +67,6 @@ const Navbar = () => {
       <AppBar position="sticky" id="appbar">
         <Toolbar id="navbar">
           <div className="nav-left">
-            {/* Redirects to lobby if logged in, otherwise to the homepage */}
             {loggedIn ? (
               <h2>Panorama</h2>
             ) : (
