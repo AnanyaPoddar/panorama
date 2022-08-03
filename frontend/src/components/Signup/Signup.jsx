@@ -162,6 +162,7 @@ function Signup() {
 
   return (
     <div>
+<<<<<<< HEAD
       {page == 1 ? (
         <div className="inner">
           <div className="page-heading">
@@ -288,6 +289,51 @@ function Signup() {
           </form>
         </div>
       )}
+=======
+      <form onSubmit={handleSubmit} className="form">
+        <TextField
+          variant="standard"
+          placeholder="Enter username"
+          inputRef={username}
+          value={user}
+          onChange={e => setUser(e.target.value)}
+        />
+        <br />
+        <TextField
+          variant="standard"
+          placeholder="Enter Email"
+          inputRef={emailfield}
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+        <br />
+        <TextField
+          variant="standard"
+          type="password"
+          placeholder="Enter password"
+          inputRef={password1}
+          value={pass}
+          onChange={e => setPass(e.target.value)}
+        />
+        <br />
+        <TextField
+          variant="standard"
+          type="password"
+          inputRef={password2}
+          placeholder="Confirm password"
+          value={pass2}
+          onChange={e => setPass2(e.target.value)}
+        />
+        <br />
+        <Button variant="outlined" type="submit">
+          Sign Up
+        </Button>
+        <br />
+        <a href="https://api.panoramas.social/api/linkedin/auth">
+          <img className="linkedinButton" src={linkedinButton} />
+        </a>
+      </form>
+>>>>>>> main
     </div>
   );
 }

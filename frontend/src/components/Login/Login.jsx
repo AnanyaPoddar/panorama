@@ -96,8 +96,13 @@ function Login() {
           Log In
         </Button>
         <br />
+<<<<<<< HEAD
         <a href="http://localhost:5000/api/linkedin/auth">
           <img alt="linkedin" className="linkedinButton" src={linkedinButton} />
+=======
+        <a href="https://api.panoramas.social/api/linkedin/auth">
+          <img className="linkedinButton" src={linkedinButton} />
+>>>>>>> main
         </a>
       </form>
     </div>

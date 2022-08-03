@@ -10,7 +10,7 @@ export function useMultiplayerState(roomId) {
 
   // Create a websocket provider
   const provider = new WebsocketProvider("ws://localhost:1234", roomId, doc, {
-    connect: true,
+    connect: true
   });
 
   // Export the provider's awareness API
@@ -28,7 +28,7 @@ export function useMultiplayerState(roomId) {
   const [loading, setLoading] = useState(true);
 
   const onMount = useCallback(
-    (app2) => {
+    app2 => {
       app2.loadRoom(roomId);
       app2.pause();
       setApp(app2);
@@ -78,15 +78,15 @@ export function useMultiplayerState(roomId) {
   useEffect(() => {
     if (!app || !room) return;
 
-    const unsubOthers = room.subscribe("others", (users) => {
+    const unsubOthers = room.subscribe("others", users => {
       if (!app.room) return;
 
       const ids = users
-        .filter((user) => user.presence && user.presence.tdUser)
-        .map((user) => user.presence.tdUser.id); // fix check if null
+        .filter(user => user.presence && user.presence.tdUser)
+        .map(user => user.presence.tdUser.id); // fix check if null
 
       // remove any user that is not connected in the room
-      Object.values(app.room.users).forEach((user) => {
+      Object.values(app.room.users).forEach(user => {
         if (user && !ids.includes(user.id) && user.id !== app.room?.userId) {
           app.removeUser(user.id);
         }
@@ -94,8 +94,8 @@ export function useMultiplayerState(roomId) {
 
       app.updateUsers(
         users
-          .filter((user) => user.presence && user.presence.tdUser)
-          .map((other) => other.presence.tdUser)
+          .filter(user => user.presence && user.presence.tdUser)
+          .map(other => other.presence.tdUser)
           .filter(Boolean)
       );
     });
@@ -143,6 +143,6 @@ export function useMultiplayerState(roomId) {
     onUndo,
     onRedo,
     loading,
-    onChangePresence,
+    onChangePresence
   };
 }

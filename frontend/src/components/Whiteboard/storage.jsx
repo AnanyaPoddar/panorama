@@ -12,7 +12,7 @@ export const provider = new WebsocketProvider(
   roomID,
   doc,
   {
-    connect: true,
+    connect: true
   }
 );
 
