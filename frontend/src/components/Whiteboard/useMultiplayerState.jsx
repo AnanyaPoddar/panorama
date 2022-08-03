@@ -9,8 +9,9 @@ export function useMultiplayerState(roomId) {
   const doc = new yjs.Doc();
 
   // Create a websocket provider
-  const provider = new WebsocketProvider("ws://178.128.227.211:1234", roomId, doc, {
-    connect: true
+  const provider = new WebsocketProvider("ws:///178.128.227.211:1234", roomId, doc, {
+    connect: true,
+    WebSocketPolyfill: require("ws")
   });
 
   provider.on("status", event => {
