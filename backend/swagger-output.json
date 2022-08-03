@@ -1,0 +1,695 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Panorama",
+    "description": "Panorama API Documentation",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/user": {
+      "get": {
+        "description": "Get the current user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}": {
+      "get": {
+        "description": "Retrieve an in-progress twilio-video room instance by unique roomID",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "description": "End an in-progress room given a roomID, at which point all connected participants will be disconnected",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/completed": {
+      "get": {
+        "description": "See if room with unique roomID has \"completed\" status",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/participants": {
+      "get": {
+        "description": "Get all connected participants of an in-progress room, identified by unique roomId",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/whitelist": {
+      "get": {
+        "description": "Get the emails of all participants who are approved to join a room with given roomID",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "identity",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/participants/{participantName}": {
+      "delete": {
+        "description": "Remove a participant from a room with given roomID, based on their unique identity",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "participantName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/token": {
+      "post": {
+        "description": "Get a twilio-video access token for an existing room with given roomID",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room": {
+      "post": {
+        "description": "Creates a new room, with an associated host and unique UUID identifier",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roomName": {
+                  "example": "any"
+                },
+                "users": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/upload": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/users/me/profilePic": {
+      "get": {
+        "description": "Get the profile picture of the current logged-in user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/summary/{roomId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "example": "any"
+                },
+                "identity": {
+                  "example": "any"
+                },
+                "firstname": {
+                  "example": "any"
+                },
+                "lastname": {
+                  "example": "any"
+                },
+                "dob": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "identity": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/linkedin/auth": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/api/linkedin/auth/callback": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/api/linkedin/auth/success": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/logout": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/invite": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userEmail": {
+                  "example": "any"
+                },
+                "users": {
+                  "example": "any"
+                },
+                "roomID": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/linkedin/post": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "users": {
+                  "example": "any"
+                },
+                "roomID": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/email/invite": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "users": {
+                  "example": "any"
+                },
+                "userEmail": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/text-mail": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "html": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/{roomId}/host": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/room/hosted": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/{userId}/verify/{token}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/verification-mail": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "identity": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  }
+}

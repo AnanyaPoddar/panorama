@@ -1,6 +1,11 @@
 import {
-  AppBar, Avatar, Button, createTheme,
-  IconButton, ThemeProvider, Toolbar
+  AppBar,
+  Avatar,
+  Button,
+  createTheme,
+  IconButton,
+  ThemeProvider,
+  Toolbar,
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,11 +25,11 @@ const Navbar = () => {
       setLoggedIn(true);
       fetch(`https://api.panoramas.social/api/users/me/profilePic`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       })
-        .then(res => res.json())
-        .then(json => setProfilePic(json.image))
-        .catch(err => console.error(err));
+        .then((res) => res.json())
+        .then((json) => setProfilePic(json.image))
+        .catch((err) => console.error(err));
     } else setLoggedIn(false);
   }, [user]);
 
@@ -35,14 +40,14 @@ const Navbar = () => {
         method: "GET",
         credentials: "include",
         headers: {
-          "Access-Control-Allow-Credentials": true
-        }
+          "Access-Control-Allow-Credentials": true,
+        },
       })
-        .then(response => {
+        .then((response) => {
           if (response.status === 200) setUser(null);
           navigate("/");
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error:", error);
         });
     }
@@ -52,9 +57,9 @@ const Navbar = () => {
     palette: {
       mode: "dark",
       primary: {
-        main: "#1976d2"
-      }
-    }
+        main: "#1976d2",
+      },
+    },
   });
 
   return (
@@ -72,6 +77,14 @@ const Navbar = () => {
           <div className="nav-right">
             <Button variant="raised" onClick={() => navigate("/credits")}>
               Credits
+            </Button>
+            <Button
+              variant="raised"
+              onClick={() =>
+                (window.location.href = "https://api.panoramas.social/docs")
+              }
+            >
+              API Docs
             </Button>
             {loggedIn && user ? (
               <>
