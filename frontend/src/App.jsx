@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar/Navbar";
 import ProtectedRoutes from "./components/ProtectedRoutes/ProtectedRoute";
@@ -14,7 +14,7 @@ import Signin from "./views/Signin/Signin";
 function App() {
   return (
     <>
-      <BrowserRouter>
+      <HashRouter>
         <Navbar />
         <Routes>
           <Route element={<ProtectedRoutes />}>
@@ -31,7 +31,7 @@ function App() {
             element={<EmailVerification />}
           />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </>
   );
 }
