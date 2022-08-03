@@ -98,6 +98,7 @@ function Signup() {
     // Fetch call to sign user in
     fetch(`https://api.panoramas.social/api/users`, {
       method: "POST",
+      credentials: "include",
       body: formdata,
     })
       .then((res) => {

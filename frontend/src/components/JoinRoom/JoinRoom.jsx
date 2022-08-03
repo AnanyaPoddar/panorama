@@ -30,7 +30,10 @@ const JoinRoom = () => {
           `https://api.panoramas.social/api/room/${roomId}/whitelist?` +
             new URLSearchParams({
               identity: user.email
-            })
+            }), 
+            {
+              credentials: "include"
+            }
         ).then(res2 => {
           if (res2.status === 200) {
             navigate(`/room/${roomId}`);

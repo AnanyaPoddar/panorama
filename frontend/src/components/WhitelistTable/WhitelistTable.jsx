@@ -13,7 +13,8 @@ const WhitelistTable = props => {
   // get the list of users
   useEffect(() => {
     fetch(`https://api.panoramas.social/api/users`, {
-      method: "GET"
+      method: "GET",
+      credentials: "include"
     })
       .then(res => {
         return res.json();
