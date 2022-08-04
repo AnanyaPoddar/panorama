@@ -13,8 +13,6 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate();
 
-  const [errors, setErrors] = useState({});
-  const [isSubmitted, setSubmit] = useState(false);
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
@@ -42,6 +40,7 @@ function Login() {
       body: JSON.stringify(creds),
     })
       .then((response) => {
+        // check for errors
         if (response.status === 401) {
           setErrorMessage("Invalid credentials");
         } else if (response.status === 403) {
@@ -50,7 +49,7 @@ function Login() {
           return response.json();
         }
       })
-      //TODO: Possibly check status is ok before rendering
+      //set user in the auth context if no errors, then navigate to lobby
       .then((json) => {
         if (json) {
           setUser({ email: json.email });
