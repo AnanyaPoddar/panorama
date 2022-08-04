@@ -55,12 +55,9 @@ function Signup() {
     setPage(2);
   };
 
-
-  // go back to first page
   const backPage = (e) => {
     setPage(1);
   };
-
 
   const handleSubmit = (e) => {
     //Prevent page reload
@@ -73,7 +70,6 @@ function Signup() {
       return;
     }
 
-    // check lastname length
     if (lastname.length < 1) {
       setErrorMessage("Enter your last name");
       return;
@@ -85,7 +81,6 @@ function Signup() {
       return;
     }
 
-    // check if img is uploaded
     if (newImg == null) {
       setErrorMessage("Profile picture is missing");
       return;
@@ -93,7 +88,6 @@ function Signup() {
 
     setErrorMessage(null);
 
-    // format body of request
     let formdata = new FormData();
     formdata.append("identity", email.toLowerCase().trim());
     formdata.append("password", pass.trim());
@@ -101,7 +95,6 @@ function Signup() {
     formdata.append("lastname", lastname.trim());
     formdata.append("dob", dob);
     formdata.append("file", newImg);
-
     // Fetch call to sign user in
     fetch(`https://api.panoramas.social/api/users`, {
       method: "POST",
@@ -110,7 +103,6 @@ function Signup() {
     })
       .then((res) => {
         if (res.status !== 200) {
-          // check if email has been used already
           if (res.status === 409) {
             setErrorMessage("This email has already been used");
             setPage(1);
@@ -119,7 +111,6 @@ function Signup() {
             setErrorMessage("Something is missing");
           }
         } else {
-          // clear form and return to first page
           setPage(1);
           setEmail("");
           setPass("");
@@ -142,8 +133,6 @@ function Signup() {
         worker.onmessage = (e) => {
           let { success, time } = e.data;
           if (success === "success") {
-
-            // email sent, so tell user
             setSuccess("Success! Check your email for a verification link.");
           }
           worker.terminate();
@@ -154,11 +143,8 @@ function Signup() {
       });
   };
 
-  // update user image when they upload a new one
   const changeImage = (data) => {
     let fileName = data.target.value;
-
-    // check if user's input image is an image file
     let extFile = fileName
       .substr(fileName.lastIndexOf(".") + 1, fileName.length)
       .toLowerCase();
@@ -166,8 +152,6 @@ function Signup() {
       setErrorMessage("File must be jpg/jpeg or png");
       return;
     }
-
-    // check size of image
     if (data.target.files[0].size / 1000 / 1000 > 2) {
       setErrorMessage("File must not exceed 2MB");
       return;
@@ -177,7 +161,6 @@ function Signup() {
     setNewImg(data.target.files[0]);
   };
 
-  // return html based on the signup page, and whether any errors are present
   return (
     <div>
       {page === 1 ? (

@@ -17,7 +17,6 @@ import "./Whiteboard.css";
 
 import { AuthContext } from "../../context/AuthProvider";
 
-// functionality for help box popup
 function HelpDialog(props) {
   const { onClose, open } = props;
 
@@ -52,8 +51,6 @@ function HelpDialog(props) {
   );
 }
 
-
-// functionality for template popup - based on example from mui docs
 function SimpleDialog(props) {
   const { onClose, template, open } = props;
 
@@ -61,11 +58,9 @@ function SimpleDialog(props) {
     onClose(template);
   };
 
-  // change value of template based on what was clicked
   const handleListItemClick = (value) => {
     onClose(value);
   };
-
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Select Template</DialogTitle>
@@ -119,19 +114,18 @@ function SimpleDialog(props) {
   );
 }
 
-
-// actual whiteboard 
 const Whiteboard = ({ roomId }) => {
   const { app, onMount, ...events } = useMultiplayerState(roomId);
   let [wbMount, setwbMount] = useState(null);
-  const [open, setOpen] = React.useState(false); // only open for host for only new rooms
-  const [helpOpen, setHelp] = React.useState(false); // initially help dialog closed
-  const [choseTemplate, setChoseTemplate] = React.useState(false); // initially template not chosen
+  const [open, setOpen] = React.useState(false); // only open for host for only new rooms,
+  const [helpOpen, setHelp] = React.useState(false);
+  const [choseTemplate, setChoseTemplate] = React.useState(false);
   const [template, setTemplate] = React.useState(null);
+  const [host, setHost] = useState("");
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
-    // check the host (only host can select template)
+    // set the host
     fetch(`https://api.panoramas.social/api/room/${roomId}/host`, {
       credentials: "include",
     })
@@ -140,7 +134,6 @@ const Whiteboard = ({ roomId }) => {
       })
       .then((json) => {
         if (user.email === json.host) {
-          // check that this isnt an old room
           fetch(`https://api.panoramas.social/api/room/${roomId}/completed`, {
             credentials: "include",
           }).then((res) => {
@@ -156,7 +149,6 @@ const Whiteboard = ({ roomId }) => {
       .catch((err) => console.error(err));
   }, []);
 
-  // set value of template based on what was selected in 
   const handleClose = (value) => {
     setOpen(false);
     if (value === "mindmap") {
@@ -177,18 +169,15 @@ const Whiteboard = ({ roomId }) => {
     if (wbMount === null) setwbMount({ onMount });
   });
 
-  // exports an image through the TldrawApp api
   const handleExport = () => {
     app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 });
   };
 
-  // link the template to the room
   const mydoc = template;
   if (mydoc) {
     mydoc.id = roomId;
   }
 
-  // configure the Tldraw app, embed it in the page, and add external buttons
   return (
     <div>
       {wbMount != null ? (

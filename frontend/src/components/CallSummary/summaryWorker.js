@@ -1,11 +1,9 @@
-// worker script for sending call summary
 export default () => {
   onmessage = e => {
     const { fileData, id } = e.data;
     const fileUrl = fileData.url;
     const fileName = fileData.name;
 
-    // fetch call to backend
     fetch(`https://api.panoramas.social/api/room/summary/${id}`, {
       method: "GET",
       headers: {
@@ -31,7 +29,6 @@ export default () => {
 
         html = html + "</div>";
 
-        // fetch to send the email
         fetch(`https://api.panoramas.social/api/text-mail`, {
           method: "POST",
           headers: {
@@ -45,7 +42,6 @@ export default () => {
             const success = "success";
             const time = new Date().getTime();
 
-            // post back to parent on success
             postMessage({
               success,
               time
@@ -54,8 +50,6 @@ export default () => {
       })
       .catch(error => {
         console.error("Error:", error);
-
-        // post back to parent process on failure
         postMessage({
           success: "Worker failed to get summary",
           time: new Date().getTime()

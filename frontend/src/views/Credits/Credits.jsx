@@ -44,36 +44,6 @@ const Credits = () => {
             Codesandbox
           </a>
         </li>
-        <li>
-          Front page animation created using
-          <a href="https://codesandbox.io/s/typewriter-css-text-animation-ot3cc">
-            Canva
-          </a>
-        </li>
-        <li>
-          Email verification structure
-          <a href="https://github.com/cyber-wolve/AuthInMern/tree/Email-Verify-In-MERN">
-            AuthInMern
-          </a>
-        </li>
-        <li>
-          Whiteboard base embed
-          <a href="https://github.com/tldraw">
-            tldraw
-          </a>
-        </li>
-        <li>
-          Whiteboard multi-user functionality
-          <a href="https://github.com/nimeshnayaju/yjs-tldraw">
-            yjs-tldraw
-          </a>
-        </li>
-        <li>
-          Help with workers (before lecture 12)
-          <a href="https://javascript.plainenglish.io/web-worker-in-react-9b2efafe309c">
-          Web workers in React
-          </a>
-        </li>
       </ul>
       {user ? (
         <Button variant="contained" onClick={() => navigate("/lobby")}>

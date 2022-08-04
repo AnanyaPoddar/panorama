@@ -21,7 +21,6 @@ function SummaryFiles() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // upon user entering this page, check that they are host
   useEffect(() => {
     fetch(`https://api.panoramas.social/api/room/${id}/host`, {
       credentials: "include",
@@ -43,10 +42,9 @@ function SummaryFiles() {
   const handleSubmit = (e) => {
     //Prevent page reload
     e.preventDefault();
-
+    //setSuccess(null);
     setErrorMessage(null);
 
-    // format body of request
     let formdata = new FormData();
     if (file != null) {
       formdata.append("file", file);
@@ -60,14 +58,13 @@ function SummaryFiles() {
     })
       .then((res) => {
         if (res.status === 200) {
-          // on success, clear the file variable
           setFileName("");
           setFile(null);
           return res.json();
         }
       })
       .then((json) => {
-        // create a worker to send the call summary with
+        // worker stuff
         const fileData = json;
         const worker = new WorkerBuilder(Worker);
         worker.postMessage({ fileData, id });
@@ -92,7 +89,6 @@ function SummaryFiles() {
       });
   };
 
-  // change file whenever user uploads a new one
   const changeFile = (data) => {
     if (data.target.files[0]) {
       if (data.target.files[0].size / 1000 / 1000 > 5) {

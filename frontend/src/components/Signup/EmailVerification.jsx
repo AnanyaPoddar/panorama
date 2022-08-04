@@ -6,10 +6,8 @@ const EmailVerification = () => {
   const [loading, setLoading] = useState(true);
   const param = useParams();
 
-
   useEffect(() => {
     const verifyEmailUrl = () => {
-      // verify the user upon them entering this page
       fetch(
         `https://api.panoramas.social/api/${param.id}/verify/${param.token}`,
         {
@@ -20,7 +18,6 @@ const EmailVerification = () => {
           }
         }
       )
-      // determine if link has been used already or not
         .then(res => {
           setLoading(false);
           if (res.status === 200) {
@@ -41,7 +38,6 @@ const EmailVerification = () => {
     verifyEmailUrl();
   }, [param]);
 
-  // update frontend according to backend results
   return (
     <div>
       {loading ? (
