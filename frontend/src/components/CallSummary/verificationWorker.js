@@ -2,6 +2,8 @@
 export default () => {
   onmessage = e => {
     let { emails } = e.data;
+
+    // send verification mail
     fetch(`https://api.panoramas.social/api/verification-mail`, {
       method: "POST",
       headers: {

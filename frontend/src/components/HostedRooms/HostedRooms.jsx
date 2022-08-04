@@ -44,6 +44,7 @@ const HostedRooms = () => {
       .catch(err => console.error(err));
   }, []);
 
+  // fetch call to join a room if user clicks on it
   const joinRoom = () => {
     fetch(`https://api.panoramas.social/api/room/${currRoom}/completed`, {
       credentials: "include"
@@ -58,6 +59,8 @@ const HostedRooms = () => {
   };
 
   return (
+
+    // based off of example in mui docs
     <Box sx={{ display: "flex" }}>
       <Drawer
         variant="permanent"
@@ -90,6 +93,7 @@ const HostedRooms = () => {
           </List>
         </Box>
       </Drawer>
+      {/* lobby page elements -> join or create a room*/ }
       <Box>
         <ToggleButtonGroup
           color="primary"
