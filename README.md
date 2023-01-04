@@ -8,7 +8,7 @@ Panorama is an all-inclusive collaborative whiteboarding tool that brings the ad
 https://www.youtube.com/watch?v=qehIdTs6wII&ab_channel=Sara
 
 
-** Technologies and Concepts **
+**Technologies and Concepts**
 - MERN stack
 - [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)(SFU Architecture) for audio and video calling, using twilio-video
 - [socket.io](https://socket.io/) for collaborative drawing, and TLDraw for the canvas
